@@ -16,3 +16,11 @@ export const toggleTaskCompletion = async (id: number, completed: boolean) => {
     await axios.put(`${API_BASE}/tasks/${id}/${completed}`);
 }
 
+export const deleteTask =  async (id: number) => {
+    await axios.delete(`${API_BASE}/tasks/${id}`);
+}
+
+export const updateTask =  async (id: number,  data: {title: string; description? : string; completed: boolean}) => {
+    await axios.put(`${API_BASE}/tasks/${id}`, data);
+}
+
