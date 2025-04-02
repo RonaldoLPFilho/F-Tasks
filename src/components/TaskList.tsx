@@ -42,19 +42,26 @@ export function TaskList({tasks, onTasksUpdated}: Props) {
     return (
         <div>
             <h2>Lista de Tarefas</h2>
-            <ul>
+            <ul className="space-y-2">
                 {tasks.map(task => (
-                    <li key={task.id}>
+                    <li
+                        key={task.id}
+                        className="flex items-center justify-between bg-grey-50 p-3 rounded border"
+                    >
+                        <div>
+                            <p className={`font-medium ${task.completed ? "line-through" : ""}`}> {task.title}</p>
+                            <p className={`text-sm text-gray-500 ${task.completed ? "line-through" : ""}`}>{task.description}</p>
+                        </div>
 
-                        – {task.completed ? "✅" : "❌"} -
-                        <input type="checkbox" checked={task.completed}
-                               onChange={() => toggleTaskComplete(task.id, !task.completed)}
-                        />
-                        <strong>{task.title}</strong>
-                        -
-                        <button onClick={() => handleDeleteTask(task.id)}>🗑️</button>
-                        -
-                        <button onClick={() =>  handleEditTask(task)}>✏️</button>
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                checked={task.completed}
+                                onChange={() => toggleTaskComplete(task.id, !task.completed)}
+                            />
+                            <button onClick={() => handleEditTask(task)}>✏️</button>
+                            <button onClick={() => handleDeleteTask(task.id)}>🗑️</button>
+                        </div>
                     </li>
                 ))}
             </ul>

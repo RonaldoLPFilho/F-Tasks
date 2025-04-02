@@ -16,12 +16,16 @@ function App() {
         loadTasks();
     }, [])
 
-
     return (
-        <div>
-            <h1>Tasks app</h1>
-            <TaskForm onTaskCreated={loadTasks} />
-            <TaskList tasks={tasks} onTasksUpdated={loadTasks} />
+        <div className="min-h-screen bg-grey-100 p-6">
+            <div className="max-w-2xl mx-auto bg-white shadow-md rounded-xl p-6 space-y-6">
+                <h1 className="text-3xl font-bold text-blue-600 text-center">
+                    Tasks app
+                </h1>
+
+                <TaskForm onTaskCreated={loadTasks}/>
+                <TaskList tasks={tasks} onTasksUpdated={loadTasks}/>
+            </div>
         </div>
     )
 }
