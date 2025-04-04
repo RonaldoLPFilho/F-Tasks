@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { login } from "../services/LoginService";
 import { AuthContext } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -6,18 +6,27 @@ import { useNavigate } from "react-router-dom";
 export function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const {login: doLogin} = useContext(AuthContext)
+    const { login: doLogin, isAuthenticated } = useContext(AuthContext);
     const navigate = useNavigate();
+
+
+    useEffect(() => {
+        if (isAuthenticated) {
+          navigate("/tasks");
+        }
+      }, [isAuthenticated]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         try{
             const response = await login({email, password});
+            console.log("token retornado: " + response)
             doLogin(response.token);
             navigate("/tasks")
         }catch(err){
             console.error(err);
+            alert("Poss;ivel credencial inválida")
         }
     }
 
