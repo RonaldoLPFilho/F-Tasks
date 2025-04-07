@@ -22,7 +22,8 @@ export function LoginPage() {
         try{
             const response = await login({email, password});
             console.log("token retornado: " + response)
-            doLogin(response.token);
+            console.log("token retornado 2: " + response.data)
+            doLogin(response.data);
             navigate("/tasks")
         }catch(err){
             console.error(err);

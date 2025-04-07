@@ -6,6 +6,7 @@ export function AuthProvider({children}: {children: React.ReactNode}){
 
     const login = (newToken: string) => {
         localStorage.setItem("token", newToken);
+        console.log("auth provider newToken: " + newToken);
         setToken(newToken);
 
     }
