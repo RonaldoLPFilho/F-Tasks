@@ -1,6 +1,6 @@
 import {Task} from "../types/Task.ts";
 import {useState} from "react";
-import {updateTask} from "../services/taskService.ts";
+import {updateTask} from "../services/TaskService.ts";
 
 interface Props {
     task: Task;

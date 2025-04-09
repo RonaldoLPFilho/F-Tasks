@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Task } from "../types/Task";
-import { getAllTasks } from "../services/taskService";
+import { getAllTasks } from "../services/TaskService";
 import { TaskForm } from "../components/TaskForm";
 import { TaskList } from "../components/TaskList";
 
@@ -17,8 +17,8 @@ export function TaskPage(){
 
     return (
         <div className="max-w-2xl mx-auto p-4">
-            <h1 className="text-2xl font-bold mb-4">Minhas tarefas</h1>
             <TaskForm onTaskCreated={loadTasks}/>
+            <div className="mt-5"></div>
             <TaskList tasks={tasks} onTasksUpdated={loadTasks}/>
         </div>
     );

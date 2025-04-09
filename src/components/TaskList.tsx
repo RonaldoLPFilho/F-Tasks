@@ -1,5 +1,5 @@
 import {Task} from "../types/Task.ts";
-import {deleteTask, toggleTaskCompletion} from "../services/taskService.ts";
+import {deleteTask, toggleTaskCompletion} from "../services/TaskService.ts";
 import {useState} from "react";
 import {TaskEditModal} from "./TaskEditModal.tsx";
 
@@ -40,7 +40,7 @@ export function TaskList({tasks, onTasksUpdated}: Props) {
     }
 
     return (
-        <div>
+        <div className="flex flex-col gap-3 border border-gray-200 rounded-lg p-4">
             <h2>Lista de Tarefas</h2>
             <ul className="space-y-2">
                 {tasks.map(task => (
