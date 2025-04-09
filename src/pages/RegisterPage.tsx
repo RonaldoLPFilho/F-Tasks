@@ -27,19 +27,19 @@ export function RegisterPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-purple-100">
-            <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
+            <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md relative">
                 <div className="flex flex-col items-center mb-6">
-                <div className="bg-purple-100 text-purple-700 rounded-full p-3 mb-2">
-                    📱
+                <div className="bg-purple-800 rounded-full p-6 absolute -top-13">
+                        <p className="text-4xl text-center">📝</p>
                 </div>
-                <h1 className="text-2xl font-semibold text-gray-800">Criar conta</h1>
+                <h1 className="text-2xl font-semibold text-gray-800 mt-4">Criar conta</h1>
                 <p className="text-sm text-gray-500 text-center mt-1">
-                    Entre com seus dados para criar sua conta
+                    Entre com seus dados para <strong>criar</strong> sua conta
                 </p>
                 </div>
         
                 <form 
-                    className="space-y-6"
+                    className="space-y-4"
                     onSubmit={handleSubmit}
                 >
                     <FloatingLabelInput
@@ -67,7 +67,7 @@ export function RegisterPage() {
                         onChange={(e) => setPassword(e.target.value) }
                     />
 
-                    <div className="mt-[-1rem] mb-2">
+                    <div className="mt-4 mb-4">
                     <PasswordStrengthBar password={password} />
                     </div>
             
@@ -77,6 +77,11 @@ export function RegisterPage() {
                     >
                         <strong>Criar conta</strong> 
                     </button>
+
+                    <div className="flex gap-2 justify-center">
+                        <p className="text-sm">Já tem conta?</p>
+                        <a href="#" onClick={()=> navigate("/login")} className="text-sm text-purple-600 hover:underline">Acessar</a>
+                    </div>
                 </form>
             </div>
         </div>
