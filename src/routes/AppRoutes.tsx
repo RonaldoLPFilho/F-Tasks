@@ -7,6 +7,7 @@ import {
 import { LoginPage } from "../pages/LoginPage";
 import { PrivateRoute } from "./PrivateRoute";
 import { TaskPage } from "../pages/TaskPage";
+import { RegisterPage } from "../pages/RegisterPage";
 
 
 export function AppRoutes(){
@@ -14,6 +15,7 @@ export function AppRoutes(){
         <Router>
             <Routes>
                 <Route path="/login" element={<LoginPage/>} />
+                <Route path="/register" element={<RegisterPage/> } />
 
                 <Route
                     path="/tasks"
@@ -23,7 +25,7 @@ export function AppRoutes(){
                         </PrivateRoute>
                     }
                 />
-
+    
                 <Route path="*" element={<Navigate to="/login" replace/>}/>
             </Routes>
         </Router>
