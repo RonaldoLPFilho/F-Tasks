@@ -3,6 +3,7 @@ import { login } from "../services/LoginService";
 import { AuthContext } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { FloatingLabelInput } from "../components/FloatingLabelInput";
+import { forgotPassword } from "../services/ResetPasswordService";
 
 export function LoginPage() {
     const [email, setEmail] = useState("");
@@ -32,12 +33,13 @@ export function LoginPage() {
 
     const handleForgot = async() => {
         if(email.length < 1){
-            setHasEmailError(true)
+            setHasEmailError(true);
         }
-        else
-            setHasEmailError(false)
-
-        
+        else{
+            setHasEmailError(false);
+            await forgotPassword(email);
+            alert("Email enviado com sucesso!")
+        }   
     }
 
 

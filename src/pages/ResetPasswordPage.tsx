@@ -1,28 +1,75 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FloatingLabelInput } from "../components/FloatingLabelInput";
 import { PasswordStrengthBar } from "../components/PasswordStrengthBar";
 import { register } from "../services/RegisterService";
 import { useNavigate, useParams } from "react-router-dom";
+import { resetPassword, validateToken } from "../services/ResetPasswordService";
 
 
 export function ResetPasswordPage() {
 
     const [password, setPassword] = useState("");
     const [confirPass, setConfirmPass] = useState("");
-
     const [hasError, setHasError] = useState(false);
   
-    const navigate = useNavigate();
     const {token} = useParams<{token: string}>();
+    const [tokenValid, setTokenValid] = useState(true);
+
+    const navigate = useNavigate();
 
 
+    useEffect(() =>  {
+        const checkToken = async () => {
+            try{
+                if(!token){
+                    setTokenValid(false);
+                    return;
+                }
+                await validateToken(token);
+            }catch{
+                setTokenValid(false);
+            }
+        }
+        checkToken();
+    }, [token]);
 
 
-    const handleError  = () => {
-        if(password !== confirPass){
-            setHasError(true)
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if(!token){
+            alert("Token de recuperação inválido");
+            return;
+        }
+
+        try{
+             await resetPassword(token, password);
+             await alert("Alteração realizada com sucesso!")
+             navigate("/login")
+        } catch(err){
+            console.error(err);
+            alert("Erro ao mudar a senha");
         }
     }
+
+    if (!tokenValid) {
+        return (
+          <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-purple-100">
+            <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md text-center">
+              <h1 className="text-xl font-semibold text-red-600 mb-4">Token inválido ou expirado</h1>
+              <p className="text-sm text-gray-500 mb-6">
+                O link de recuperação de senha que você usou não é mais válido. Tente solicitar um novo e-mail de recuperação.
+              </p>
+              <button
+                className="w-full bg-purple-400 text-white py-3 rounded-lg hover:bg-purple-700 transition"
+                onClick={() => navigate("/login")}
+              >
+                Voltar ao login
+              </button>
+            </div>
+          </div>
+        );
+      }
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-purple-100">
@@ -39,7 +86,7 @@ export function ResetPasswordPage() {
         
                 <form 
                     className="space-y-4"
-                    onSubmit={() => null}
+                    onSubmit={handleSubmit}
                 >
             
                     <FloatingLabelInput
