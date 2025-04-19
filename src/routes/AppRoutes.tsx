@@ -8,6 +8,7 @@ import { LoginPage } from "../pages/LoginPage";
 import { PrivateRoute } from "./PrivateRoute";
 import { TaskPage } from "../pages/TaskPage";
 import { RegisterPage } from "../pages/RegisterPage";
+import { ResetPasswordPage } from "../pages/ResetPasswordPage";
 
 
 export function AppRoutes(){
@@ -17,6 +18,7 @@ export function AppRoutes(){
                 <Route path="/login" element={<LoginPage/>} />
                 <Route path="/register" element={<RegisterPage/> } />
 
+
                 <Route
                     path="/tasks"
                     element={
@@ -24,6 +26,13 @@ export function AppRoutes(){
                             <TaskPage />
                         </PrivateRoute>
                     }
+                />
+
+                <Route 
+                    path="/reset-password/:token" 
+                    element={
+                        <ResetPasswordPage/>
+                    } 
                 />
     
                 <Route path="*" element={<Navigate to="/login" replace/>}/>

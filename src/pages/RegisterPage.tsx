@@ -15,7 +15,7 @@ export function RegisterPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-    
+
         try {
           await register({ username, email, password });
           navigate("/login");

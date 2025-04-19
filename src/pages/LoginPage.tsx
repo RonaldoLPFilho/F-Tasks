@@ -7,9 +7,9 @@ import { FloatingLabelInput } from "../components/FloatingLabelInput";
 export function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [hasEmailError, setHasEmailError] = useState(false);
     const { login: doLogin, isAuthenticated } = useContext(AuthContext);
     const navigate = useNavigate();
-
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -28,6 +28,16 @@ export function LoginPage() {
             console.error(err);
             alert("Poss;ivel credencial inválida")
         }
+    }
+
+    const handleForgot = async() => {
+        if(email.length < 1){
+            setHasEmailError(true)
+        }
+        else
+            setHasEmailError(false)
+
+        
     }
 
 
@@ -56,6 +66,8 @@ export function LoginPage() {
                         required
                         label="Email"
                         onChange={(e) => setEmail(e.target.value)}
+                        hasError={hasEmailError}
+                        errorMessage="Preencha o email para recuperar a senha"
                     />
 
 
@@ -70,7 +82,7 @@ export function LoginPage() {
                     />
 
                     <div className="text-right text-sm">
-                        <a href="#" className="text-purple-600 hover:underline">Esqueceu a senha?</a>
+                        <a href="#" onClick={handleForgot} className="text-purple-600 hover:underline">Esqueceu a senha?</a>
                     </div>
 
                     <button
