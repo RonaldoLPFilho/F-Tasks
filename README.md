@@ -6,7 +6,7 @@ Projeto de estudos práticos:
 --- 
 Tecnologias utilizadas
 
-Backend (Java + Spring Boot):
+[Backend (Java + Spring Boot):](https://github.com/RonaldoLPFilho/B-Tasks)
 
     Spring Boot 3
 
@@ -20,7 +20,7 @@ Backend (Java + Spring Boot):
 
     Maven
 
-Frontend (React + Vite):
+[Frontend (React + Vite):](https://github.com/RonaldoLPFilho/F-Tasks)
 
     React + TypeScript
 
