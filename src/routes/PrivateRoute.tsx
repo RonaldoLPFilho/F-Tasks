@@ -1,15 +1,19 @@
-import { JSX, useContext } from "react";
+import { useContext } from "react";
 import { AuthContext } from "../contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
+import { Header } from "../components/Header";
 
-export function PrivateRoute({children}: {children: JSX.Element}){
-    const {isAuthenticated} = useContext(AuthContext);
+export function PrivateRoute() {
+    const { isAuthenticated } = useContext(AuthContext);
 
-    if(isAuthenticated){
-        return (
-            children
-        )
-    }else{
-        return <Navigate to="/login"/>
+    if (!isAuthenticated) {
+        return <Navigate to="/login" />;
     }
+
+    return (
+        <>
+            <Header />
+            <Outlet />
+        </>
+    );
 }

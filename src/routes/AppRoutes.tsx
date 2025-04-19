@@ -19,14 +19,9 @@ export function AppRoutes(){
                 <Route path="/register" element={<RegisterPage/> } />
 
 
-                <Route
-                    path="/tasks"
-                    element={
-                        <PrivateRoute>
-                            <TaskPage />
-                        </PrivateRoute>
-                    }
-                />
+                <Route element={<PrivateRoute />}>
+                    <Route path="/tasks" element={<TaskPage />} />
+                </Route>
 
                 <Route 
                     path="/reset-password/:token" 

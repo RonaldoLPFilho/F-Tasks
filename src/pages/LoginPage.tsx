@@ -23,7 +23,7 @@ export function LoginPage() {
 
         try{
             const response = await login({email, password});
-            doLogin(response.data);
+            doLogin(response.data.token, response.data.username);
             navigate("/tasks")
         }catch(err){
             console.error(err);

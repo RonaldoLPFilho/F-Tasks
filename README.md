@@ -1,54 +1,94 @@
-# React + TypeScript + Vite
+📝 Projeto: Tasks App – Gerenciador de Tarefas com Autenticação
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Projeto de estudos práticos:
+  - Este projeto é uma aplicação web completa de gerenciamento de tarefas.
 
-Currently, two official plugins are available:
+--- 
+Tecnologias utilizadas
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Backend (Java + Spring Boot):
 
-## Expanding the ESLint configuration
+    Spring Boot 3
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+    Spring Security com JWT
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+    JPA + Hibernate
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+    PostgreSQL
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+    Jakarta Mail (envio de e-mails)
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+    Maven
+
+Frontend (React + Vite):
+
+    React + TypeScript
+
+    Tailwind CSS
+
+    Axios
+
+    React Router DOM
+
+    Context API (para auth global)
+
+  ---
+
+**Funcionalidades:**
+
+Autenticação
+
+  - Registro de novo usuário
+
+  - Login com autenticação via token JWT
+
+  - Armazenamento seguro do token
+
+  - Logout
+
+Recuperação de senha
+
+  - Envio de link de redefinição por e-mail
+
+  - Token com validade de 15 minutos
+
+  - Formulário para criação de nova senha
+
+  - Validação do token (expirado ou já utilizado)
+
+Gerenciamento de tarefas
+
+  - Listagem de tarefas por usuário
+
+  - Criação de tarefas com título e descrição (opcional)
+
+  - Marcar tarefas como concluídas
+
+  - Editar título, descrição e status
+
+  - Remover tarefas
+
+Interface personalizada para o usuário logado
+
+  - Header com nome do usuário e botão de logout
+
+  - Proteção de rotas com redirecionamento para login se o token for inválido
+  
+  ---
+
+⚙️ Como rodar o projeto
+
+Pré-requisitos:
+
+    Java 21+
+
+    Node.js 18+
+
+    PostgreSQL rodando localmente
+
+    Conta Gmail com App Password (para envio de e-mails)
+
+
+--- 
+
+Autor: Ronaldo Luiz 
