@@ -11,11 +11,13 @@ interface Props {
 export function TaskEditModal({task, onClose, onSaved} : Props){
     const [title, setTitle] = useState(task.title);
     const [description, setDescription] = useState(task.description);
-    const [completed, setCompleted] = useState(task.completed)
+    const [completed, setCompleted] = useState(task.completed);
+    const [jira, setJira] = useState(task.jiraId);
+    const [category, setCategory] = useState(task.category);
 
     const handleSave = async () => {
         try{
-            await updateTask(task.id, {title, description, completed});
+            await updateTask(task.id, {title, description, completed, jira, category});
             onSaved()
             onClose()
         }catch(err){
@@ -52,9 +54,19 @@ export function TaskEditModal({task, onClose, onSaved} : Props){
 
                     <br/>
 
+                    <input
+                        value={jira}
+                        placeholder="Jira ID"
+                        autoComplete="off"
+                        required
+                        className="border border-gray-200 rounded-lg p-4"
+                        onChange={(e) => setJira(e.target.value)}
+                    />
 
-                    <div className="flex items-center gap-2">
+                    
 
+
+                    <div className="flex items-center gap-2 mt-2">
                         <input
                             id="completed"
                             type="checkbox"
@@ -63,7 +75,6 @@ export function TaskEditModal({task, onClose, onSaved} : Props){
                         />
                         <label htmlFor="completed">Concluído</label>
                     </div>
-
                 </div>
 
                 <br/>

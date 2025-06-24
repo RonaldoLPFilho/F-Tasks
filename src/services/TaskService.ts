@@ -9,8 +9,9 @@ export const getAllTasks = async (): Promise<Task[]> => {
     return response.data.data;
 }
 
-export const createTask = async (data: {title: string; description? : string}): Promise<Task> => {
+export const createTask = async (data: {title: string; description? : string; jiraId: string, category: string}): Promise<Task> => {
     const response = await api.post<ApiResponse<Task>>(`/tasks`, data);
+    console.log("To enviano pro back: " + data.jiraId)
     return response.data.data
 }
 
@@ -22,7 +23,7 @@ export const deleteTask =  async (id: number) => {
     await api.delete(`/tasks/${id}`);
 }
 
-export const updateTask =  async (id: number,  data: {title: string; description? : string; completed: boolean}) => {
+export const updateTask =  async (id: number,  data: {title: string; description? : string; completed: boolean, jira: string, category: string}) => {
     await api.put(`/tasks/${id}`, data);
 }
 

@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { AuthContext } from "../contexts/AuthContext";
 import { Navigate, Outlet } from "react-router-dom";
-import { Header } from "../components/Header";
+import { Header } from "../layout/Header";
 
 export function PrivateRoute() {
     const { isAuthenticated } = useContext(AuthContext);
@@ -9,7 +9,7 @@ export function PrivateRoute() {
     if (!isAuthenticated) {
         return <Navigate to="/login" />;
     }
-
+    
     return (
         <>
             <Header />

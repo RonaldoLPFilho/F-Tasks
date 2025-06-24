@@ -26,6 +26,7 @@ export function LoginPage() {
             doLogin(response.data.token, response.data.username);
             navigate("/tasks")
         }catch(err){
+            //Todo: adaptar para lidar melhor com erros, implementar sistema de notificacao
             console.error(err);
             alert("Poss;ivel credencial inválida")
         }

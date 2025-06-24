@@ -1,6 +1,7 @@
 import {createTask} from "../services/TaskService.ts";
 import React, {useState} from "react";
 import { FloatingLabelInput } from "./FloatingLabelInput.tsx";
+import { FloatingLabelSelect } from "./FloatingLabelSelect.tsx";
 
 
 interface Props {
@@ -10,12 +11,14 @@ interface Props {
 export function TaskForm({onTaskCreated}: Props) {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
+    const [jiraId, setJiraId] = useState("");
+    const [category, setCategory] = useState("");
 
     const handleSubmit = async (e: React.FormEvent)=> {
         e.preventDefault();
 
         try{
-            await createTask({title, description});
+            await createTask({title, description, jiraId, category});
             setTitle("");
             setDescription("");
             onTaskCreated();
@@ -45,6 +48,32 @@ export function TaskForm({onTaskCreated}: Props) {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
             />
+
+            <div className="flex flex-col sm:flex-row gap-3">
+                <div className="w-full sm:w-1/2">
+                    <FloatingLabelInput
+                        id="jira"
+                        label="Jira ID"
+                        type="text"
+                        value={jiraId}
+                        onChange={(e) => setJiraId(e.target.value)}
+                    />
+                </div>
+
+                <div className="w-full sm:w-1/2">
+                    <FloatingLabelSelect
+                        id="categoria"
+                        label="Categoria"
+                        value={category}
+                        onChange={(e) => setCategory(e.target.value)}
+                        options={[
+                            {label: "Teste 1", value: "test1"},
+                            {label: "Teste 2", value: "test2"},
+                        ]}
+                    />
+                </div>
+            </div>
+
             <br/>
             <button type="submit" className="bg-purple-600 hover:bg-purple-700 text-white py-2 rounded font-semibold">
                 Criar
