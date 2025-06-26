@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { FloatingLabelInput } from "../components/FloatingLabelInput";
+import { FloatingLabelInput } from "../../../components/FloatingLabelInput";
 import { PasswordStrengthBar } from "../components/PasswordStrengthBar";
-import { register } from "../services/RegisterService";
 import { useNavigate, useParams } from "react-router-dom";
 import { resetPassword, validateToken } from "../services/ResetPasswordService";
 

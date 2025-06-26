@@ -1,6 +1,6 @@
 import {Task} from "../types/Task.ts";
 import {useState} from "react";
-import {updateTask} from "../services/TaskService.ts";
+import {updateTask} from "../services/TaskService.ts"
 
 interface Props {
     task: Task;
@@ -12,12 +12,12 @@ export function TaskEditModal({task, onClose, onSaved} : Props){
     const [title, setTitle] = useState(task.title);
     const [description, setDescription] = useState(task.description);
     const [completed, setCompleted] = useState(task.completed);
-    const [jira, setJira] = useState(task.jiraId);
+    const [jiraId, setJiraId] = useState(task.jiraId);
     const [category, setCategory] = useState(task.category);
 
     const handleSave = async () => {
         try{
-            await updateTask(task.id, {title, description, completed, jira, category});
+            await updateTask(task.id, {title, description, completed, jiraId, category});
             onSaved()
             onClose()
         }catch(err){
@@ -55,16 +55,13 @@ export function TaskEditModal({task, onClose, onSaved} : Props){
                     <br/>
 
                     <input
-                        value={jira}
+                        value={jiraId}
                         placeholder="Jira ID"
                         autoComplete="off"
                         required
                         className="border border-gray-200 rounded-lg p-4"
-                        onChange={(e) => setJira(e.target.value)}
+                        onChange={(e) => setJiraId(e.target.value)}
                     />
-
-                    
-
 
                     <div className="flex items-center gap-2 mt-2">
                         <input

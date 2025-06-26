@@ -1,7 +1,7 @@
-import { ApiResponse } from "../types/ApiResponse";
+import { ApiResponse } from "../../../types/ApiResponse";
 import { LoginRequest } from "../types/LoginRequest";
 import { LoginResponseDTO } from "../types/LoginResponseDTO";
-import api from "./AxiosInterceptor";
+import api from "../../../services/AxiosInterceptor";
 
 
 export const login = async (data: LoginRequest): Promise<ApiResponse<LoginResponseDTO>> =>{

@@ -1,4 +1,4 @@
-import api from "./AxiosInterceptor"
+import api from "../../../services/AxiosInterceptor"
 
 export const resetPassword = async (token: string, newPassword: string): Promise<void> => {
     await api.post(`/auth/reset-password`, {token, newPassword})

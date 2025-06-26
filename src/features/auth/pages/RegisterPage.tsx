@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FloatingLabelInput } from "../components/FloatingLabelInput";
+import { FloatingLabelInput } from "../../../components/FloatingLabelInput";
 import { PasswordStrengthBar } from "../components/PasswordStrengthBar";
 import { register } from "../services/RegisterService";
 import { useNavigate } from "react-router-dom";

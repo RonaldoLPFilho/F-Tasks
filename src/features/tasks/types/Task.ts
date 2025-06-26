@@ -3,8 +3,8 @@ export interface Task {
     title: string;
     description?: string;
     completed: boolean;
-    createDate: string;
-    finishDate: string;
+    createdAt: string;
+    finishedAt: string;
     jiraId: string;
     category: string;
 }

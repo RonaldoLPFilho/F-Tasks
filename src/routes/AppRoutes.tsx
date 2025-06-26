@@ -4,11 +4,11 @@ import {
     Route,
     Navigate
 } from "react-router-dom";
-import { LoginPage } from "../pages/LoginPage";
-import { PrivateRoute } from "./PrivateRoute";
-import { TaskPage } from "../pages/TaskPage";
-import { RegisterPage } from "../pages/RegisterPage";
-import { ResetPasswordPage } from "../pages/ResetPasswordPage";
+import { LoginPage } from "../features/auth/pages/LoginPage";
+import { PrivateRoute } from "../routes/PrivateRoute";
+import { TaskPage } from "../features/tasks/pages/TaskPage";
+import { RegisterPage } from "../features/auth/pages/RegisterPage";
+import { ResetPasswordPage } from "../features/auth/pages/ResetPasswordPage";
 
 
 export function AppRoutes(){

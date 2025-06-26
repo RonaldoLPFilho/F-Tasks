@@ -1,6 +1,6 @@
 import {Task} from "../types/Task";
-import { ApiResponse } from "../types/ApiResponse";
-import api from "./AxiosInterceptor";
+import { ApiResponse } from "../../../types/ApiResponse";
+import api from "../../../services/AxiosInterceptor";
 
 
 
@@ -23,7 +23,7 @@ export const deleteTask =  async (id: number) => {
     await api.delete(`/tasks/${id}`);
 }
 
-export const updateTask =  async (id: number,  data: {title: string; description? : string; completed: boolean, jira: string, category: string}) => {
+export const updateTask =  async (id: number,  data: {title: string; description? : string; completed: boolean, jiraId: string, category: string}) => {
     await api.put(`/tasks/${id}`, data);
 }
 

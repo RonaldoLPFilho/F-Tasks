@@ -2,8 +2,8 @@ import { useContext, useEffect, useState } from "react";
 import { login } from "../services/LoginService";
 import { AuthContext } from "../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { FloatingLabelInput } from "../components/FloatingLabelInput";
-import { forgotPassword } from "../services/ResetPasswordService";
+import { FloatingLabelInput } from "../../../components/FloatingLabelInput";
+import { forgotPassword } from "../../auth/services/ResetPasswordService";
 
 export function LoginPage() {
     const [email, setEmail] = useState("");

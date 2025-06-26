@@ -1,6 +1,6 @@
-import { ApiResponse } from "../types/ApiResponse"
+import { ApiResponse } from "../../../types/ApiResponse"
 import { RegisterRequest } from "../types/RegisterRequest"
-import api from "./AxiosInterceptor"
+import api from "../../../services/AxiosInterceptor"
 
 
 export const register = async (data: RegisterRequest): Promise<ApiResponse<string>> => {

@@ -1,7 +1,7 @@
-import {createTask} from "../services/TaskService.ts";
+import {createTask} from "../services/TaskService.ts"
 import React, {useState} from "react";
-import { FloatingLabelInput } from "./FloatingLabelInput.tsx";
-import { FloatingLabelSelect } from "./FloatingLabelSelect.tsx";
+import { FloatingLabelInput } from "../../../components/FloatingLabelInput.tsx"
+import { FloatingLabelSelect } from "../../../components/FloatingLabelSelect.tsx";
 
 
 interface Props {
