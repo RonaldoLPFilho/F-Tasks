@@ -9,6 +9,7 @@ import { PrivateRoute } from "../routes/PrivateRoute";
 import { TaskPage } from "../features/tasks/pages/TaskPage";
 import { RegisterPage } from "../features/auth/pages/RegisterPage";
 import { ResetPasswordPage } from "../features/auth/pages/ResetPasswordPage";
+import { CategoryPage } from "../features/categories/pages/CategoryPage";
 
 
 export function AppRoutes(){
@@ -21,6 +22,10 @@ export function AppRoutes(){
 
                 <Route element={<PrivateRoute />}>
                     <Route path="/tasks" element={<TaskPage />} />
+                </Route>
+
+                <Route element={<PrivateRoute />}>
+                    <Route path="/categories" element={<CategoryPage />} />
                 </Route>
 
                 <Route 

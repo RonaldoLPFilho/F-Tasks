@@ -1,6 +1,7 @@
 import { useContext } from "react";
 import { AuthContext } from "../features/auth/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { UserDropdownMenu } from "../components/UserDropdownMenu";
 
 export function Header(){
     const {username, logout} = useContext(AuthContext);
@@ -18,7 +19,7 @@ export function Header(){
                 📋 TasksApp
             </h1>
 
-            <div className="flex items-center gap-4">
+            {/* <div className="flex items-center gap-4">
                 <span className="text-sm">{username}</span>
                 <span>⚙️</span>
                 <button 
@@ -27,7 +28,9 @@ export function Header(){
                     >
                     Sair
                 </button>
-            </div>
+            </div> */}
+
+            <UserDropdownMenu username={username} onLogout={handleLogout}/>
         </header>
     )
 }
