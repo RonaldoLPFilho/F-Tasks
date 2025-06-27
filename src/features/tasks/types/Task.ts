@@ -1,3 +1,5 @@
+import { Category } from "../../categories/types/Category";
+
 export interface Task {
     id: number;
     title: string;
@@ -6,5 +8,5 @@ export interface Task {
     createdAt: string;
     finishedAt: string;
     jiraId: string;
-    category: string;
+    category: Category;
 }

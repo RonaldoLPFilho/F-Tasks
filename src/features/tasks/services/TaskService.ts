@@ -9,9 +9,9 @@ export const getAllTasks = async (): Promise<Task[]> => {
     return response.data.data;
 }
 
-export const createTask = async (data: {title: string; description? : string; jiraId: string, category: string}): Promise<Task> => {
+export const createTask = async (data: {title: string; description? : string; jiraId: string, categoryId: string}): Promise<Task> => {
     const response = await api.post<ApiResponse<Task>>(`/tasks`, data);
-    console.log("To enviano pro back: " + data.jiraId)
+    console.log("To enviano pro back: " + data.categoryId)
     return response.data.data
 }
 

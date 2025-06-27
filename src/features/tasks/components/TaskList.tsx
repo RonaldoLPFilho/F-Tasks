@@ -2,6 +2,7 @@ import {Task} from "../types/Task.ts";
 import {deleteTask, toggleTaskCompletion} from "../services/TaskService.ts";
 import {useState} from "react";
 import {TaskEditModal} from "./TaskEditModal.tsx";
+import { CardItem } from "../../../components/CardItem.tsx";
 
 
 interface Props {
@@ -44,25 +45,35 @@ export function TaskList({tasks, onTasksUpdated}: Props) {
             <h2>Lista de Tarefas</h2>
             <ul className="space-y-2">
                 {tasks.map(task => (
-                    <li
+                    <CardItem
                         key={task.id}
-                        className="flex items-center justify-between bg-grey-50 p-3 rounded border"
-                    >
-                        <div>
-                            <p className={`font-medium ${task.completed ? "line-through" : ""}`}> {task.title}</p>
-                            <p className={`text-sm text-gray-500 ${task.completed ? "line-through" : ""}`}>{task.description}</p>
-                        </div>
+                        title={task.title}
+                        color={task.category.color}
+                        showCheckbox
+                        checked={task.completed}
+                        onCheckToggle={() => toggleTaskComplete(task.id, !task.completed)}
+                        onEdit={() => handleEditTask(task)}
+                        onDelete={() => handleDeleteTask(task.id)}
+                    />
+                    // <li
+                    //     key={task.id}
+                    //     className="flex items-center justify-between bg-grey-50 p-3 rounded border"
+                    // >
+                    //     <div>
+                    //         <p className={`font-medium ${task.completed ? "line-through" : ""}`}> {task.title}</p>
+                    //         <p className={`text-sm text-gray-500 ${task.completed ? "line-through" : ""}`}>{task.description}</p>
+                    //     </div>
 
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="checkbox"
-                                checked={task.completed}
-                                onChange={() => toggleTaskComplete(task.id, !task.completed)}
-                            />
-                            <button onClick={() => handleEditTask(task)}>✏️</button>
-                            <button onClick={() => handleDeleteTask(task.id)}>🗑️</button>
-                        </div>
-                    </li>
+                    //     <div className="flex items-center gap-2">
+                    //         <input
+                    //             type="checkbox"
+                    //             checked={task.completed}
+                    //             onChange={() => toggleTaskComplete(task.id, !task.completed)}
+                    //         />
+                    //         <button onClick={() => handleEditTask(task)}>✏️</button>
+                    //         <button onClick={() => handleDeleteTask(task.id)}>🗑️</button>
+                    //     </div>
+                    // </li>
                 ))}
             </ul>
             {isModalOpen && taskToEdit && (

@@ -1,5 +1,6 @@
 import { li } from "framer-motion/client";
 import { Category } from "../types/Category";
+import { CardItem } from "../../../components/CardItem";
 
 interface Props {
     categories: Category[];
@@ -19,14 +20,20 @@ export function CategoryList({categories, onCategoriesUpdated}: Props ){
             <h2 className="text-lg font-semibold">Categorias Cadastradas</h2>
             <ul className="space-y-2">
                 {categories.map((category) => (
-                    <li
+                    <CardItem
                         key={category.id}
-                        className="flex items-center justify-between p3- rounded border"
-                        style={{backgroundColor: category.color}}
-                    >
-                        <span className="font-medium text-white drop-shadow">{category.name}</span>
-                        <button onClick={() => handleDelete(category.id)}>🗑️</button>
-                    </li>
+                        title={category.name}
+                        color={category.color}
+                        onDelete={() => handleDelete(category.id)}
+                    />
+                    // <li
+                    //     key={category.id}
+                    //     className="flex items-center justify-between p3- rounded border"
+                    //     style={{backgroundColor: category.color}}
+                    // >
+                    //     <span className="font-medium text-white drop-shadow">{category.name}</span>
+                    //     <button onClick={() => handleDelete(category.id)}>🗑️</button>
+                    // </li>
                 ))}
             </ul>
         </div>

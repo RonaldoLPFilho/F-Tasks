@@ -1,7 +1,10 @@
 import {createTask} from "../services/TaskService.ts"
-import React, {useState} from "react";
+import React, {use, useEffect, useState} from "react";
 import { FloatingLabelInput } from "../../../components/FloatingLabelInput.tsx"
 import { FloatingLabelSelect } from "../../../components/FloatingLabelSelect.tsx";
+import { Category } from "../../categories/types/Category.ts";
+import { getAllCategories } from "../../categories/services/CategoryService.ts";
+import { label } from "framer-motion/client";
 
 
 interface Props {
@@ -12,20 +15,33 @@ export function TaskForm({onTaskCreated}: Props) {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [jiraId, setJiraId] = useState("");
-    const [category, setCategory] = useState("");
+    const [categoryId, setCategoryId] = useState("");
+    const [categories, setCategories] = useState<Category[]>([]);
+
+    useEffect(() => {
+        getAllCategories()
+            .then(setCategories)
+            .catch((err) => console.error("Erro ao carregar categorias", err))
+    }, [])
 
     const handleSubmit = async (e: React.FormEvent)=> {
         e.preventDefault();
 
         try{
-            await createTask({title, description, jiraId, category});
+            await createTask({title, description, jiraId, categoryId});
             setTitle("");
             setDescription("");
+            setCategoryId("");
             onTaskCreated();
         }catch(err){
             console.error(err);
         }
     };
+
+    const categoryOptions = categories.map((cat) => ({
+        label: cat.name,
+        value: cat.id, 
+    }));
 
     return (
         <form
@@ -64,12 +80,9 @@ export function TaskForm({onTaskCreated}: Props) {
                     <FloatingLabelSelect
                         id="categoria"
                         label="Categoria"
-                        value={category}
-                        onChange={(e) => setCategory(e.target.value)}
-                        options={[
-                            {label: "Teste 1", value: "test1"},
-                            {label: "Teste 2", value: "test2"},
-                        ]}
+                        value={categoryId}
+                        onChange={(e) => setCategoryId(e.target.value)}
+                        options={categoryOptions}
                     />
                 </div>
             </div>
