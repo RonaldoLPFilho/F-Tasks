@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { FloatingLabelInput } from "../../../components/FloatingLabelInput";
-import { HexColorInput, HexColorPicker } from "react-colorful";
+import { HexColorPicker } from "react-colorful";
 import { createCategory } from "../services/CategoryService";
+import { Tags } from "lucide-react";
 
 interface Props{
     onCategoryCreated: () => void;
@@ -28,7 +29,11 @@ export function CategoryForm({onCategoryCreated} : Props){
             onSubmit={handleSubmit}
             className="flex flex-col gap-4 border border-gray-200 rounded-lg p-4"
         >
-            <h1 className="text-xl font-semibold text-center">Criar Categoria</h1>
+    
+            <h1 className="text-xl font-semibold flex items-center justify-center gap-2 text-purple-700 mb-4">
+                <Tags className="w-5 h-5" />
+                Criar categoria
+            </h1>
             <FloatingLabelInput
                 id="Nome"
                 label="Nome da categoria"

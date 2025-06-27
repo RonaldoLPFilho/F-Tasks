@@ -1,4 +1,5 @@
 import { div } from "framer-motion/client";
+import { Settings } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -26,10 +27,10 @@ export function UserDropdownMenu({username, onLogout}: Props){
         <div className="relative flex items-center gap-4" ref={menuRef}>
             <span className="text-sm">{username}</span>
             <span
-                className="cursor-pointer hover:opacity-80"
+                className="cursor-pointer hover:opacity-80 transition"
                 onClick={() => setOpen(!open)}
             >
-                ⚙️
+                <Settings/>
             </span>
             {open && (
                 <div className="absolute right-16 top-10 bg-white text-black rounded-md shadow-md py-2 w-32 z-10">

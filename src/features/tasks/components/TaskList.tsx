@@ -3,6 +3,7 @@ import {deleteTask, toggleTaskCompletion} from "../services/TaskService.ts";
 import {useState} from "react";
 import {TaskEditModal} from "./TaskEditModal.tsx";
 import { CardItem } from "../../../components/CardItem.tsx";
+import { ClipboardList } from "lucide-react";
 
 
 interface Props {
@@ -42,12 +43,16 @@ export function TaskList({tasks, onTasksUpdated}: Props) {
 
     return (
         <div className="flex flex-col gap-3 border border-gray-200 rounded-lg p-4">
-            <h2>Lista de Tarefas</h2>
+            <h1 className="text-xl font-semibold flex items-center justify-center gap-2 text-purple-700 mb-4">
+                <ClipboardList className="w-5 h-5" />
+                Lista de tarefas
+            </h1>
             <ul className="space-y-2">
                 {tasks.map(task => (
                     <CardItem
                         key={task.id}
                         title={task.title}
+                        description={task.description}
                         color={task.category.color}
                         showCheckbox
                         checked={task.completed}
@@ -55,25 +60,6 @@ export function TaskList({tasks, onTasksUpdated}: Props) {
                         onEdit={() => handleEditTask(task)}
                         onDelete={() => handleDeleteTask(task.id)}
                     />
-                    // <li
-                    //     key={task.id}
-                    //     className="flex items-center justify-between bg-grey-50 p-3 rounded border"
-                    // >
-                    //     <div>
-                    //         <p className={`font-medium ${task.completed ? "line-through" : ""}`}> {task.title}</p>
-                    //         <p className={`text-sm text-gray-500 ${task.completed ? "line-through" : ""}`}>{task.description}</p>
-                    //     </div>
-
-                    //     <div className="flex items-center gap-2">
-                    //         <input
-                    //             type="checkbox"
-                    //             checked={task.completed}
-                    //             onChange={() => toggleTaskComplete(task.id, !task.completed)}
-                    //         />
-                    //         <button onClick={() => handleEditTask(task)}>✏️</button>
-                    //         <button onClick={() => handleDeleteTask(task.id)}>🗑️</button>
-                    //     </div>
-                    // </li>
                 ))}
             </ul>
             {isModalOpen && taskToEdit && (

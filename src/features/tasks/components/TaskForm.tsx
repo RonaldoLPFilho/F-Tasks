@@ -5,6 +5,7 @@ import { FloatingLabelSelect } from "../../../components/FloatingLabelSelect.tsx
 import { Category } from "../../categories/types/Category.ts";
 import { getAllCategories } from "../../categories/services/CategoryService.ts";
 import { label } from "framer-motion/client";
+import { FilePenLine } from "lucide-react";
 
 
 interface Props {
@@ -36,7 +37,7 @@ export function TaskForm({onTaskCreated}: Props) {
         }catch(err){
             console.error(err);
         }
-    };
+    }; 
 
     const categoryOptions = categories.map((cat) => ({
         label: cat.name,
@@ -48,7 +49,11 @@ export function TaskForm({onTaskCreated}: Props) {
             onSubmit={handleSubmit}
             className="flex flex-col gap-3 border border-gray-200 rounded-lg p-4"
         >
-            <h1 className="text-xl font-semibold text-center">Criar tarefa</h1>
+            <h1 className="text-xl font-semibold flex items-center justify-center gap-2 text-purple-700 mb-4">
+                <FilePenLine className="w-5 h-5" />
+                Criar tarefa
+            </h1>
+            
             <FloatingLabelInput
                 id="titulo"
                 label="Titulo"
