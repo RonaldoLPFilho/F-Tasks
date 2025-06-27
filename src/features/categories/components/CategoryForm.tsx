@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FloatingLabelInput } from "../../../components/FloatingLabelInput";
 import { HexColorPicker } from "react-colorful";
 import { createCategory } from "../services/CategoryService";
-import { Tags } from "lucide-react";
+import { CirclePlus, Tags } from "lucide-react";
 
 interface Props{
     onCategoryCreated: () => void;
@@ -31,7 +31,7 @@ export function CategoryForm({onCategoryCreated} : Props){
         >
     
             <h1 className="text-xl font-semibold flex items-center justify-center gap-2 text-purple-700 mb-4">
-                <Tags className="w-5 h-5" />
+                <CirclePlus className="w-5 h-5" />
                 Criar categoria
             </h1>
             <FloatingLabelInput
