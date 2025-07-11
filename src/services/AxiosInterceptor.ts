@@ -22,4 +22,22 @@ api.interceptors.request.use((config) => {
     return Promise.reject(error);
 })
 
+api.interceptors.response.use(
+    response => response,
+    error => {
+        if(error.response && error.response.status === 401){
+            const msg = error.response.data?.message;
+
+            localStorage.removeItem("token");
+            localStorage.removeItem("username");
+            localStorage.removeItem("userToken");
+
+            window.location.href = "/login";
+
+            return Promise.reject(error);
+        }   
+        return Promise.reject(error);
+    }
+);
+
 export default api;
