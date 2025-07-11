@@ -16,7 +16,7 @@ export function Header() {
           </div>
           <div>
             <h2 className="text-lg font-semibold text-gray-800">Bem-vindo, {username}</h2>
-            <p className="text-sm text-gray-500">Gerencie suas tarefas de forma eficiente</p>
+            <a className="text-sm text-gray-500 hover:text-blue-700 cursor-pointer" onClick={()=> navigate("/categories")}>Gerencie sua conta</a>
           </div>
         </div>
 
