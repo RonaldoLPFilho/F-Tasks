@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Task } from "../types/Task";
-import { CalendarDays, CheckCircle, ChevronDown, ChevronUp, MessageSquare, Pencil, Trash } from "lucide-react";
+import { CalendarDays, CheckCircle, ChevronDown, ChevronUp, Circle, MessageSquare, Pencil, Trash } from "lucide-react";
 import { Divider } from "../../../components/Divider";
 
 interface TaskCardProps{
@@ -23,14 +23,25 @@ export function TaskCard({task, onToggleComplete, onEdit, onDelete}: TaskCardPro
         >
           <div className="flex justify-between items-start">
             <div className="flex items-start gap-3">
-              <input
+              {/* <input
                 type="checkbox"
                 checked={task.completed}
                 onChange={onToggleComplete}
                 className="mt-1"
-              />
+              /> */}
+
+                <button
+                    onClick={onToggleComplete}
+                    className="text-gray-600 hover:text-black"
+                >
+                    {task.completed ? (
+                        <CheckCircle size={20} className="text-violet-600" />
+                    ) : (
+                        <Circle size={20} />
+                    )}
+                </button>
               <div>
-                <h3 className={`text-base font-semibold ${task.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+                <h3 className={`text-xl font-semibold ${task.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
                   {task.title}
                 </h3>
     
