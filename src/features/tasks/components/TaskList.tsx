@@ -4,6 +4,7 @@ import {useState} from "react";
 import {TaskEditModal} from "./TaskEditModal.tsx";
 import { CardItem } from "../../../components/CardItem.tsx";
 import { ClipboardList } from "lucide-react";
+import { TaskCard } from "./TaskCard.tsx";
 
 
 interface Props {
@@ -49,14 +50,21 @@ export function TaskList({tasks, onTasksUpdated}: Props) {
             </h1>
             <ul className="space-y-2">
                 {tasks.map(task => (
-                    <CardItem
+                    // <CardItem
+                    //     key={task.id}
+                    //     title={task.title}
+                    //     description={task.description}
+                    //     color={task.category.color}
+                    //     showCheckbox
+                    //     checked={task.completed}
+                    //     onCheckToggle={() => toggleTaskComplete(task.id, !task.completed)}
+                    //     onEdit={() => handleEditTask(task)}
+                    //     onDelete={() => handleDeleteTask(task.id)}
+                    // />
+                    <TaskCard
                         key={task.id}
-                        title={task.title}
-                        description={task.description}
-                        color={task.category.color}
-                        showCheckbox
-                        checked={task.completed}
-                        onCheckToggle={() => toggleTaskComplete(task.id, !task.completed)}
+                        task={task}
+                        onToggleComplete={() => toggleTaskComplete(task.id, !task.completed)}
                         onEdit={() => handleEditTask(task)}
                         onDelete={() => handleDeleteTask(task.id)}
                     />
