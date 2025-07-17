@@ -10,9 +10,10 @@ interface TaskCardProps{
     onToggleComplete: () => void;
     onEdit: () => void;
     onDelete: () => void;
+    onUpdateTask: (updatedTask: Task) => void;
 }
 
-export function TaskCard({task, onToggleComplete, onEdit, onDelete}: TaskCardProps) {
+export function TaskCard({task, onToggleComplete, onEdit, onDelete, onUpdateTask}: TaskCardProps) {
     return (
         <div
         className="border-l-4 rounded-xl shadow-sm p-6 m-4 bg-white"
@@ -62,7 +63,15 @@ export function TaskCard({task, onToggleComplete, onEdit, onDelete}: TaskCardPro
             </div>
           </div>
     
-          <TaskSubtasks subtasks={task.subtasks}/>
+          <TaskSubtasks 
+            taskId={task.id.toString()}
+            subtasks={task.subtasks}
+            onSubtasksUpdated={(newSubs) => {
+                const updatedTask = { ...task, subtasks: newSubs} ;
+                onUpdateTask(updatedTask)
+            }}
+            
+          />
           <Divider/>
           <TaskComments comments={task.comments}/>
         </div>
