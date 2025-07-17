@@ -3,10 +3,10 @@ import { ApiResponse } from "../../../types/ApiResponse";
 import { Subtask } from "../types/Substask";
 
 export const createSubtask = async(data: {title: string, taskId: string}): Promise<Subtask> => {
-    const response = await api.post<ApiResponse<Subtask>>(`/subtask`, data);
+    const response = await api.post<ApiResponse<Subtask>>(`/subtasks`, data);
     return response.data.data;
 }
 
 export const toggleSubstaskCompletion = async (id: string, completed: boolean) => {
-    await api.put(`/subtask/${id}/${completed}`);
+    await api.put(`/subtasks/${id}/${completed}`);
 }

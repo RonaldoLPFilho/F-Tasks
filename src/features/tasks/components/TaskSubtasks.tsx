@@ -65,7 +65,7 @@ export function TaskSubtasks({taskId, subtasks, onSubtasksUpdated}: Props){
                     {subtasks.map((sub, i) => (
                         <div 
                             key={i} 
-                            className="flex items-center gap-2 text-sm"
+                            className="flex items-center gap-2 text-sm mt-4"
                             onClick={() => handleCompletion(sub.id, !sub.completed)}
                         >
                             <div className="w-5 h-5 flex items-center justify-center rounded-full border-2 border-purple-500"> 
@@ -75,7 +75,7 @@ export function TaskSubtasks({taskId, subtasks, onSubtasksUpdated}: Props){
                         </div>
                     ))}
                     
-                    <div className="flex items-center gap-2 mt-3">
+                    <div className="flex items-center gap-2 mt-4">
                         <input
                             value={newSubtask}
                             onChange={(e) => setNewSubtask(e.target.value)}

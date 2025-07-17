@@ -4,6 +4,7 @@ import { CalendarDays, CheckCircle, ChevronDown, ChevronUp, Circle, MessageSquar
 import { Divider } from "../../../components/Divider";
 import { TaskSubtasks } from "./TaskSubtasks";
 import { TaskComments } from "./TaskComment";
+import { comment } from "postcss";
 
 interface TaskCardProps{
     task: Task;
@@ -45,7 +46,7 @@ export function TaskCard({task, onToggleComplete, onEdit, onDelete, onUpdateTask
                   </div>
     
                   <div className="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-md font-medium">
-                    {task.subtasks?.length || 0}/{task.subtasks?.length || 0} subtarefas
+                    {task.subtasks?.length || 0} subtarefas
                   </div>
     
                   <div className="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-md font-medium">
@@ -73,7 +74,14 @@ export function TaskCard({task, onToggleComplete, onEdit, onDelete, onUpdateTask
             
           />
           <Divider/>
-          <TaskComments comments={task.comments}/>
+          <TaskComments 
+              taskId={task.id.toString()} 
+              comments={task.comments}
+              onCommentsUpdated={(newComments) => {
+                const updatedTask = { ...task, comments: newComments} ;
+                onUpdateTask(updatedTask)
+              }}
+          />
         </div>
       );
     }
