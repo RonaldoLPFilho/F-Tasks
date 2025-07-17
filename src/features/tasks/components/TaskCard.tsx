@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Task } from "../types/Task";
 import { CalendarDays, CheckCircle, ChevronDown, ChevronUp, Circle, MessageSquare, Pencil, Trash } from "lucide-react";
 import { Divider } from "../../../components/Divider";
+import { TaskSubtasks } from "./TaskSubtasks";
+import { TaskComments } from "./TaskComment";
 
 interface TaskCardProps{
     task: Task;
@@ -11,11 +13,6 @@ interface TaskCardProps{
 }
 
 export function TaskCard({task, onToggleComplete, onEdit, onDelete}: TaskCardProps) {
-    const [showSubtasks, setShowSubtasks] = useState(false);
-    const [showComments, setShowComments] = useState(false)
-
-    // ${task.completed ? 'border-green-500' : 'border-purple-500'}
-
     return (
         <div
         className="border-l-4 rounded-xl shadow-sm p-6 m-4 bg-white"
@@ -23,12 +20,6 @@ export function TaskCard({task, onToggleComplete, onEdit, onDelete}: TaskCardPro
         >
           <div className="flex justify-between items-start">
             <div className="flex items-start gap-3">
-              {/* <input
-                type="checkbox"
-                checked={task.completed}
-                onChange={onToggleComplete}
-                className="mt-1"
-              /> */}
 
                 <button
                     onClick={onToggleComplete}
@@ -40,6 +31,7 @@ export function TaskCard({task, onToggleComplete, onEdit, onDelete}: TaskCardPro
                         <Circle size={20} />
                     )}
                 </button>
+              
               <div>
                 <h3 className={`text-xl font-semibold ${task.completed ? 'line-through text-gray-400' : 'text-gray-800'}`}>
                   {task.title}
@@ -70,61 +62,9 @@ export function TaskCard({task, onToggleComplete, onEdit, onDelete}: TaskCardPro
             </div>
           </div>
     
-          {/* Subtarefas */}
-          <div className="m-4">
-            <button
-              className="text-lg text-gray-600 flex items-center gap-1 hover:text-purple-600"
-              onClick={() => setShowSubtasks(!showSubtasks)}
-            >
-              <CheckCircle className="w-4 h-4" />
-              Subtarefas
-              {showSubtasks ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
-    
-            {showSubtasks && (
-              <div className="ml-6 mt-2 space-y-1">
-                {task.subtasks?.map((sub, index) => (
-                  <div key={index} className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" checked={sub.completed} readOnly />
-                    <span className={sub.completed ? "line-through text-gray-400" : ""}>{sub.title}</span>
-                  </div>
-                ))}
-                <input
-                  placeholder="Nova subtarefa..."
-                  className="w-full border rounded px-2 py-1 text-sm mt-2"
-                />
-              </div>
-            )}
-          </div>
-
+          <TaskSubtasks subtasks={task.subtasks}/>
           <Divider/>
-    
-          {/* Comentários */}
-          <div className="m-4">
-            <button
-              className="text-lg text-gray-600 flex items-center gap-1 hover:text-purple-600"
-              onClick={() => setShowComments(!showComments)}
-            >
-              <MessageSquare className="w-4 h-4" />
-              Comentários
-              {showComments ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-            </button>
-    
-            {showComments && (
-              <div className="ml-6 mt-2 space-y-2">
-                {task.comments?.map((c, i) => (
-                  <div key={i} className="text-sm text-gray-700 bg-gray-100 p-2 rounded-md">
-                    <p className="text-sm font-medium text-gray-600">{c.author}</p>
-                    <p>{c.description}</p>
-                  </div>
-                ))}
-                <input
-                  placeholder="Adicionar comentário..."
-                  className="w-full border rounded px-2 py-1 text-sm mt-2"
-                />
-              </div>
-            )}
-          </div>
+          <TaskComments comments={task.comments}/>
         </div>
       );
     }
