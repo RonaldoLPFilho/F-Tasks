@@ -1,4 +1,4 @@
-import { CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { BadgePlus, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { Subtask } from "../types/Substask";
 import { useState } from "react";
 import { createSubtask, toggleSubstaskCompletion } from "../services/SubtaskService";
@@ -86,7 +86,7 @@ export function TaskSubtasks({taskId, subtasks, onSubtasksUpdated}: Props){
                             className="bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-lg px-3"
                             onClick={handleAddSubtask}
                         >
-                            +
+                            <BadgePlus className="w-4 h-4"/>
                         </button>
                     </div>
                 </div>
