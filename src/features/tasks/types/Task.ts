@@ -1,4 +1,6 @@
 import { Category } from "../../categories/types/Category";
+import { Comment } from "./Comment";
+import { Subtask } from "./Substask";
 
 export interface Task {
     id: number;
@@ -9,4 +11,6 @@ export interface Task {
     finishedAt: string;
     jiraId: string;
     category: Category;
+    subtasks: Subtask[];
+    comments: Comment[];
 }

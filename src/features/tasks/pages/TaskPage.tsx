@@ -31,7 +31,9 @@ export function TaskPage(){
                 </div>
                 <TaskForm onTaskCreated={loadTasks}/>
                 <div className="mt-5"></div>
-                <TaskList tasks={tasks} onTasksUpdated={loadTasks}/>
+                {/* <TaskList tasks={tasks} onTasksUpdated={loadTasks}/> */}
+                <TaskList tasks={tasks} setTasks={setTasks} />
+
             </div>
         </>
 
