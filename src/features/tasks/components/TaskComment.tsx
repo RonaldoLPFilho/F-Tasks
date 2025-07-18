@@ -79,7 +79,7 @@ export function TaskComments({taskId, comments, onCommentsUpdated}: Props){
                         />
                         <button
                             onClick={handleCreateComment}
-                            className="bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-lg"
+                            className="bg-purple-500 hover:bg-purple-600 text-white rounded-lg p-2 px-3 "
                         >
                             <Send className="w-4 h-4"/>
                         </button>
