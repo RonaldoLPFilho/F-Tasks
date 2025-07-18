@@ -1,6 +1,6 @@
 import { Category } from "../../categories/types/Category";
-import { Comment } from "./Comment";
-import { Subtask } from "./Substask";
+import { Comment } from "../comments/types/Comment";
+import { Subtask } from "../subtasks/types/Substask";
 
 export interface Task {
     id: number;

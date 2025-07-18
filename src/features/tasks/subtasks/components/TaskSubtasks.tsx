@@ -2,7 +2,6 @@ import { BadgePlus, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { Subtask } from "../types/Substask";
 import { useState } from "react";
 import { createSubtask, toggleSubstaskCompletion } from "../services/SubtaskService";
-import { u } from "framer-motion/client";
 
 interface Props {
     taskId: string;
