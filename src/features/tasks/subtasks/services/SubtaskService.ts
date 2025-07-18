@@ -1,5 +1,5 @@
-import api from "../../../services/AxiosInterceptor";
-import { ApiResponse } from "../../../types/ApiResponse";
+import api from "../../../../services/AxiosInterceptor";
+import { ApiResponse } from "../../../../types/ApiResponse";
 import { Subtask } from "../types/Substask";
 
 export const createSubtask = async(data: {title: string, taskId: string}): Promise<Subtask> => {

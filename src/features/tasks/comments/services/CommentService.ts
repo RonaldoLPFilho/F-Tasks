@@ -1,5 +1,5 @@
-import api from "../../../services/AxiosInterceptor"
-import { ApiResponse } from "../../../types/ApiResponse"
+import api from "../../../../services/AxiosInterceptor"
+import { ApiResponse } from "../../../../types/ApiResponse"
 import { Comment } from "../types/Comment";
 
 export const createComment = async(data: {description: string, taskId: string}): Promise<Comment> => {
