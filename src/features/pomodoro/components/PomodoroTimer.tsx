@@ -47,13 +47,14 @@ export function PomodoroTimer(){
 
     const formatTime = (seconds: number) => {
         const m = String(Math.floor(seconds / 60)).padStart(2, "0");
-        const s = String(seconds % 60).padStart(2, "");
+        const s = String(seconds % 60).padStart(2, "0");
         return `${m}:${s}`;
     }
 
     const playAlarm = () => {
         const url = `http://localhost:8080/alarms/${preferences?.alarmSound}`;
         audioRef.current = new Audio(url);
+        audioRef.current.loop = true;
         audioRef.current.play();
         setAlarmPlaying(true);
         setIsRunning(false);
@@ -62,6 +63,7 @@ export function PomodoroTimer(){
     const stopAlarmAndSwitch = () => {
         audioRef.current?.pause();
         audioRef.current!.currentTime = 0;
+        audioRef.current!.loop = false; 
         setAlarmPlaying(false);
 
         if(!preferences) return;
@@ -69,7 +71,7 @@ export function PomodoroTimer(){
         const nextIsSession = !isSession;
         setIsSession(nextIsSession);
         setTimeLeft(
-            (nextIsSession ? preferences.sessionDuration : preferences.breakDuration) * 6
+            (nextIsSession ? preferences.sessionDuration : preferences.breakDuration) * 60
         );
         setIsRunning(true);
     }
@@ -95,9 +97,9 @@ export function PomodoroTimer(){
                 <span className="flex items-center gap-1">
                     <Timer size={30}/> {isSession ? "Sessão" : "Pausa"}
                 </span>
-                <button className="hover:opacity-70 transition-all">
+                {/* <button className="hover:opacity-70 transition-all">
                     <span className="sr-only">Configurações</span> <Cog size={30} className="cursor-pointer"/>
-                </button>
+                </button> */}
             </div>
             
             <h2 className="text-3xl font-bold text-purple-600">{formatTime(timeLeft)}</h2>
@@ -107,11 +109,11 @@ export function PomodoroTimer(){
                     <button
                         onClick={stopAlarmAndSwitch}
                         className={clsx(
-                            "w-full text-purple-600 animate-pulse p-2 rounded-lg",
+                            "w-full flex justify-center bg-purple-500 text-white-600 animate-bounce p-2 rounded-lg",
                             "hover:scale-105 transition-transform"
                         )}
                     >
-                        <BellRing size={30}/>
+                        <BellRing  size={30}/>
                     </button>
                 ) : (
                     <div className="flex w-full text-center">
