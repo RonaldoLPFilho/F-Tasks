@@ -1,4 +1,4 @@
-import { Category } from "../../categories/types/Category";
+import { Category } from "../../../types/Category";
 import { Comment } from "../comments/types/Comment";
 import { Subtask } from "../subtasks/types/Substask";
 

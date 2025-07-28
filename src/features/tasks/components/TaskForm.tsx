@@ -2,8 +2,8 @@ import {createTask} from "../services/TaskService.ts"
 import React, {use, useEffect, useState} from "react";
 import { FloatingLabelInput } from "../../../components/FloatingLabelInput.tsx"
 import { FloatingLabelSelect } from "../../../components/FloatingLabelSelect.tsx";
-import { Category } from "../../categories/types/Category.ts";
-import { getAllCategories } from "../../categories/services/CategoryService.ts";
+import { Category } from "../../../types/Category.ts";
+import { getAllCategories } from "../../settings/categories/CategoryService.ts";
 import { label } from "framer-motion/client";
 import { FilePenLine } from "lucide-react";
 

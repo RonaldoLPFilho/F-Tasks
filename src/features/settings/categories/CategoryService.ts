@@ -1,6 +1,6 @@
 import api from "../../../services/AxiosInterceptor";
 import { ApiResponse } from "../../../types/ApiResponse";
-import { Category } from "../types/Category";
+import { Category } from "../../../types/Category";
 
 export async function getAllCategories(): Promise<Category[]>{
     const response = await api.get<ApiResponse<Category[]>>(`/categories`);

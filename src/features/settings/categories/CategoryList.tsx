@@ -1,5 +1,4 @@
-import { li } from "framer-motion/client";
-import { Category } from "../types/Category";
+import { Category } from "../../../types/Category";
 import { CardItem } from "../../../components/CardItem";
 import { Tags } from "lucide-react";
 
