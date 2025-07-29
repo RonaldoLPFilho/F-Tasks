@@ -40,7 +40,7 @@ export function SettingsPage(){
           onClick={() => navigate("/tasks")}
           className="flex items-center text-sm text-gray-500 hover:text-purple-600 mb-6"
         >
-          <MoveLeft size={24}/> <p className="text-md"> Voltar para tarefas</p> 
+          <MoveLeft size={24}/> <p className="text-sm"> Voltar para tarefas</p> 
         </button>
 
         <h1 className="text-2xl font-bold mb-6">Configurações</h1>

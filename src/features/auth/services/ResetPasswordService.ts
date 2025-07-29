@@ -11,3 +11,8 @@ export const forgotPassword = async (email: string): Promise<void> => {
 export const validateToken = async(token: string): Promise<void> => {
     await api.get(`/auth/validate-token`, {params : {token} });
 }
+
+export const getUserEmail = async(): Promise<string> => {
+    const response = await api.get(`/auth/get-email`);
+    return response.data.data;
+}
