@@ -1,9 +1,11 @@
-import { Task } from "../types/Task.ts";
-import { deleteTask, toggleTaskCompletion } from "../services/TaskService.ts";
-import { useState } from "react";
-import { TaskEditModal } from "./TaskEditModal.tsx";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Reorder } from "framer-motion";
 import { ClipboardList } from "lucide-react";
-import { TaskCard } from "./TaskCard.tsx";
+import { Task } from "../types/Task";
+import { TaskEditModal } from "./TaskEditModal";
+import { TaskDraggableCard } from "./TaskDraggableCard";
+import { deleteTask, toggleTaskCompletion } from "../services/TaskService";
+import { reorderTasks } from "../services/TaskService";
 
 interface Props {
   tasks: Task[];
@@ -14,21 +16,24 @@ export function TaskList({ tasks, setTasks }: Props) {
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // estado local para animações do Reorder (mantemos o prop como fonte da verdade)
+  const [localTasks, setLocalTasks] = useState<Task[]>(tasks);
+  const prevTasksRef = useRef<Task[]>(tasks);
+
+  // sincroniza quando o prop tasks mudar (ex.: reload do backend ou criação)
+  useEffect(() => {
+    setLocalTasks(tasks);
+    prevTasksRef.current = tasks;
+  }, [tasks]);
+
   const updateTaskInList = (updatedTask: Task) => {
-    const updatedTasks = tasks.map((t) =>
-      t.id === updatedTask.id ? updatedTask : t
-    );
-    setTasks(updatedTasks);
+    setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
   };
 
   const toggleTaskComplete = async (id: number, newStatus: boolean) => {
     try {
       await toggleTaskCompletion(id, newStatus);
-      // Aqui você poderia fazer um update no estado também se quiser evitar recarregar toda a lista
-      const updatedTasks = tasks.map((t) =>
-        t.id === id ? { ...t, completed: newStatus } : t
-      );
-      setTasks(updatedTasks);
+      setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, completed: newStatus } : t)));
     } catch (error) {
       console.error("Erro ao atualizar o status da tarefa ", error);
     }
@@ -38,17 +43,35 @@ export function TaskList({ tasks, setTasks }: Props) {
     try {
       if (confirm("Tem certeza que deseja deletar essa tarefa?")) {
         await deleteTask(id);
-        const filteredTasks = tasks.filter((t) => t.id !== id);
-        setTasks(filteredTasks);
+        setTasks((prev) => prev.filter((t) => t.id !== id));
       }
     } catch (error) {
       console.error("Erro ao deletar a task", error);
     }
   };
 
-  const handleEditTask = async (task: Task) => {
+  const handleEditTask = (task: Task) => {
     setTaskToEdit(task);
     setIsModalOpen(true);
+  };
+
+  // quando o usuário solta o drag: persiste ordem
+  const handleReorderEnd = async () => {
+    const orderedIds = localTasks.map((t) => t.id as unknown as string);
+    const snapshot = prevTasksRef.current;
+
+    // otimista: já atualiza o pai
+    setTasks(localTasks);
+
+    try {
+      await reorderTasks(orderedIds);
+      prevTasksRef.current = localTasks;
+    } catch (e) {
+      console.error("Falha ao persistir reorder, desfazendo…", e);
+      // rollback
+      setLocalTasks(snapshot);
+      setTasks(snapshot);
+    }
   };
 
   return (
@@ -57,18 +80,26 @@ export function TaskList({ tasks, setTasks }: Props) {
         <ClipboardList className="w-5 h-5" />
         Lista de tarefas
       </h1>
-      <ul className="space-y-2">
-        {tasks.map((task) => (
-          <TaskCard
+
+      <Reorder.Group
+        axis="y"
+        values={localTasks}
+        onReorder={setLocalTasks}
+        className="space-y-2"
+      >
+        {localTasks.map((task) => (
+          <TaskDraggableCard
             key={task.id}
             task={task}
-            onToggleComplete={() => toggleTaskComplete(task.id, !task.completed)}
+            onDragEnd={handleReorderEnd}
+            onToggleComplete={() => toggleTaskComplete(task.id as unknown as number, !task.completed)}
             onEdit={() => handleEditTask(task)}
-            onDelete={() => handleDeleteTask(task.id)}
+            onDelete={() => handleDeleteTask(task.id as unknown as number)}
             onUpdateTask={updateTaskInList}
           />
         ))}
-      </ul>
+      </Reorder.Group>
+
       {isModalOpen && taskToEdit && (
         <TaskEditModal
           task={taskToEdit}
@@ -76,9 +107,7 @@ export function TaskList({ tasks, setTasks }: Props) {
             setIsModalOpen(false);
             setTaskToEdit(null);
           }}
-          onSaved={() => {
-            // Aqui você pode recarregar a lista inteira se preferir
-          }}
+          onSaved={() => {}}
         />
       )}
     </div>

@@ -27,3 +27,7 @@ export const updateTask =  async (id: number,  data: {title: string; description
     await api.put(`/tasks/${id}`, data);
 }
 
+export async function reorderTasks(orderedIds: Array<string>) {
+    await api.patch("/tasks/reorder", { orderedIds });
+  }
+
