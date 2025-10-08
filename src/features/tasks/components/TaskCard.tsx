@@ -1,10 +1,8 @@
-import { useState } from "react";
 import { Task } from "../types/Task";
 import { CalendarDays, CheckCircle, ChevronDown, ChevronUp, Circle, MessageSquare, Pencil, Trash } from "lucide-react";
 import { Divider } from "../../../components/Divider";
 import { TaskSubtasks } from "../subtasks/components/TaskSubtasks";
 import { TaskComments } from "../comments/components/TaskComment";
-import { comment } from "postcss";
 
 interface TaskCardProps{
     task: Task;

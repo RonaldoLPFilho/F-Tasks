@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import {Category} from "../types/Category"
-import { CategoryForm } from "../components/CategoryForm";
-import { CategoryList } from "../components/CategoryList";
-import { getAllCategories } from "../services/CategoryService";
+import {Category} from "../../../types/Category"
+import { CategoryForm } from "./CategoryForm";
+import { CategoryList } from "./CategoryList";
+import { getAllCategories } from "./CategoryService";
 
-export function CategoryPage(){
+export function CategorySettings(){
     const [categories, setCategories] = useState<Category[]>([]);
 
     const loadCategories = async () => {
@@ -21,7 +21,7 @@ export function CategoryPage(){
     }, []);
 
     return (
-        <div className="max-w-2xl mx-auto p-4">
+        <div>
             <CategoryForm onCategoryCreated={loadCategories} />
             <div className="mt-5"></div>
             <CategoryList categories={categories} onCategoriesUpdated={loadCategories}/>

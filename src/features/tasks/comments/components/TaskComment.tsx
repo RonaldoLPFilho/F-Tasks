@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Comment } from "../types/Comment";
 import { CalendarDays, ChevronDown, ChevronUp, MessageSquare, Send } from "lucide-react";
 import { createComment } from "../services/CommentService";
+import { useCollapse } from "../../context/CollapseContext";
 
 interface Props {
     taskId: string;
@@ -13,11 +14,18 @@ export function TaskComments({taskId, comments, onCommentsUpdated}: Props){
     const [isOpen, setIsOpen] = useState(false);
     const [newComment, setNewComment] = useState("");
     const [commentsState, setCommentState] = useState<Comment[]>(comments);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const {isExpanded} = useCollapse();
+
+    useEffect(() => {
+        setIsOpen(isExpanded);
+    }, [isExpanded])
 
     const handleCreateComment = async () => {
         if (!newComment.trim()) return;
 
         try{
+            setIsSubmitting(true);
             const created = await createComment({description: newComment, taskId});
             const updated = [...commentsState, created];
             setCommentState(updated);
@@ -25,6 +33,8 @@ export function TaskComments({taskId, comments, onCommentsUpdated}: Props){
             setNewComment("");
         }catch(err){
             console.error("Erro ao aidcionar comentario", err);
+        }finally{
+            setIsSubmitting(false);
         }
     }
 
@@ -70,7 +80,13 @@ export function TaskComments({taskId, comments, onCommentsUpdated}: Props){
                         </div>
                     ))}
 
-                    <div className="flex items-center gap-2 pt-2">
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            handleCreateComment();
+                        }} 
+                        className="flex items-center gap-2 pt-2"
+                    >
                         <input
                             value={newComment}
                             onChange={(e) => setNewComment(e.target.value)}
@@ -78,12 +94,14 @@ export function TaskComments({taskId, comments, onCommentsUpdated}: Props){
                             className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                         />
                         <button
+                            type="submit"
+                            disabled={!newComment.trim() || isSubmitting}
                             onClick={handleCreateComment}
                             className="bg-purple-500 hover:bg-purple-600 text-white rounded-lg p-2 px-3 "
                         >
                             <Send className="w-4 h-4"/>
                         </button>
-                    </div>
+                    </form>
                 </div>
             )}
         </div>

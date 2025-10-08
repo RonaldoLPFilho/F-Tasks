@@ -19,7 +19,7 @@ export function Header() {
           </div>
           <div>
             <h2 className="text-lg font-semibold text-gray-800">Bem-vindo, {username}</h2>
-            <a className="text-sm text-gray-500 hover:text-blue-700 cursor-pointer" onClick={()=> navigate("/categories")}>Gerencie sua conta</a>
+            <a className="text-sm text-gray-500 hover:text-blue-700 cursor-pointer" onClick={()=> navigate("/settings")}>Gerencie sua conta</a>
           </div>
         </div>
 

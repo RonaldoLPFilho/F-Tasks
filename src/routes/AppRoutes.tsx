@@ -5,14 +5,15 @@ import {
     Navigate
   } from "react-router-dom";
   
-  import { LoginPage } from "../features/auth/pages/LoginPage";
-  import { RegisterPage } from "../features/auth/pages/RegisterPage";
-  import { ResetPasswordPage } from "../features/auth/pages/ResetPasswordPage";
-  import { TaskPage } from "../features/tasks/pages/TaskPage";
-  import { CategoryPage } from "../features/categories/pages/CategoryPage";
-  
-  import { PrivateRoute } from "../routes/PrivateRoute";
-  import { AppLayout } from "../layout/AppLayout";
+import { LoginPage } from "../features/auth/pages/LoginPage";
+import { RegisterPage } from "../features/auth/pages/RegisterPage";
+import { ResetPasswordPage } from "../features/auth/pages/ResetPasswordPage";
+import { TaskPage } from "../features/tasks/pages/TaskPage";
+
+
+import { PrivateRoute } from "../routes/PrivateRoute";
+import { AppLayout } from "../layout/AppLayout";
+import { SettingsPage } from "../features/settings/SettingsPage";
   
   export function AppRoutes() {
     return (
@@ -27,7 +28,7 @@ import {
           <Route element={<PrivateRoute />}>
             <Route element={<AppLayout />}>
               <Route path="/tasks" element={<TaskPage />} />
-              <Route path="/categories" element={<CategoryPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
             </Route>
           </Route>
   
