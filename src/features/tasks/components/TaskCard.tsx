@@ -1,5 +1,5 @@
 import { Task } from "../types/Task";
-import { CalendarDays, CheckCircle, ChevronDown, ChevronUp, Circle, MessageSquare, Pencil, Trash } from "lucide-react";
+import { Archive, CalendarDays, CheckCircle, Circle, Pencil, Trash } from "lucide-react";
 import { Divider } from "../../../components/Divider";
 import { TaskSubtasks } from "../subtasks/components/TaskSubtasks";
 import { TaskComments } from "../comments/components/TaskComment";
@@ -42,6 +42,10 @@ export function TaskCard({task, onToggleComplete, onEdit, onDelete, onUpdateTask
                     <CalendarDays className="w-4 h-4" />
                     {new Date(task.createdAt).toLocaleDateString("pt-BR")}
                   </div>
+
+                  <div style={{backgroundColor: task.category.color}} className="text-black bold text-xs px-2 py-0.5 rounded-md font-medium">
+                    {task.category.name} 
+                  </div>
     
                   <div className="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-md font-medium">
                     {task.subtasks?.length || 0} subtarefas
@@ -50,6 +54,7 @@ export function TaskCard({task, onToggleComplete, onEdit, onDelete, onUpdateTask
                   <div className="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-md font-medium">
                     {task.comments?.length || 0} comentário(s)
                   </div>
+
                 </div>
     
                 <p className="text-sm text-gray-600 mt-6 mb-6">{task.description}</p>
@@ -57,8 +62,9 @@ export function TaskCard({task, onToggleComplete, onEdit, onDelete, onUpdateTask
             </div>
     
             <div className="flex gap-2">
-              <button onClick={onEdit}><Pencil className="w-4 h-4 text-gray-500 hover:text-purple-600" /></button>
-              <button onClick={onDelete}><Trash className="w-4 h-4 text-red-500 hover:text-red-700" /></button>
+              <button><Archive className="w-4 h-4 text-gray-500 hover:text-purple-600 cursor-pointer"/> </button>
+              <button onClick={onEdit}><Pencil className="w-4 h-4 text-gray-500 hover:text-purple-600 cursor-pointer" /></button>
+              <button onClick={onDelete}><Trash className="w-4 h-4 text-red-500 hover:text-red-700 cursor-pointer" /></button>
             </div>
           </div>
     

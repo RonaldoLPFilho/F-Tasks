@@ -1,22 +1,25 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { SettingsSection } from "./SettingSection";
 import { useNavigate } from "react-router-dom";
-import { Globe, KeyRound, MoveLeft, Tag, Timer } from "lucide-react";
+import { Globe, KeyRound, LogOut, MoveLeft, Tag, Timer } from "lucide-react";
 import { PasswordSettings } from "./password/PasswordSettings";
 import { PomodoroSettings } from "./pomodoro/PomodoroSettings";
 import { CategorySettings } from "./categories/CategorySettings";
 import { LanguageSettings } from "./language/LanguageSettings";
+import { AuthContext } from "../auth/contexts/AuthContext";
 
 
 export function SettingsPage(){
     const [activeSection, setActiveSection] = useState<SettingsSection>(SettingsSection.PASSWORD);
     const navigate = useNavigate();
+    const {logout} = useContext(AuthContext);
 
     const menuItems = [
         {label: "Trocar senha", icon: <KeyRound size={16}/>, section: SettingsSection.PASSWORD},
-        {label: "Idioma", icon: <Globe size={16}/>, section: SettingsSection.LANGUAGE},
+        {label: "Ajustes da IA", icon: <Globe size={16}/>, section: SettingsSection.LANGUAGE},
         {label: "Categorias", icon: <Tag size={16}/>, section: SettingsSection.CATEGORY},
-        {label: "Pomodoro", icon: <Timer size={16}/>, section: SettingsSection.POMODORO}
+        {label: "Pomodoro", icon: <Timer size={16}/>, section: SettingsSection.POMODORO},
+        {label: "Logout", icon: <LogOut size={16}/> , section: SettingsSection.LOGOUT }
     ];
 
     const renderSection = () => {
@@ -29,6 +32,8 @@ export function SettingsPage(){
             return <CategorySettings />;
           case SettingsSection.POMODORO:
             return <PomodoroSettings />;
+          case SettingsSection.LOGOUT:
+             logout();
           default:
             return null;
         }

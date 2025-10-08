@@ -74,7 +74,7 @@ export function TaskSubtasks({taskId, subtasks, onSubtasksUpdated}: Props){
                             className="flex items-center gap-2 text-sm mt-4"
                             onClick={() => handleCompletion(sub.id, !sub.completed)}
                         >
-                            <div className="w-5 h-5 flex items-center justify-center rounded-full border-2 border-purple-500"> 
+                            <div className="w-5 h-5 flex-none flex items-center justify-center rounded-full border-2 border-purple-500"> 
                                 {sub.completed && <CheckCircle className="h-4 h-4 text-purple-600"/>}
                             </div>
                             <span className={sub.completed ? "line-through text-gray-800" : ""}>{sub.title}</span>
