@@ -4,6 +4,7 @@ import { getAllTasks } from "../services/TaskService";
 import { TaskForm } from "../components/TaskForm";
 import { TaskList } from "../components/TaskList";
 import { DailyModal } from "../../daily/components/DailyModal";
+import { CollapseProvider } from "../context/CollapseContext";
 
 export function TaskPage(){
     const [tasks, setTasks] = useState<Task[]>([]);
@@ -19,7 +20,7 @@ export function TaskPage(){
 
     return (
         <>
-            <div className="max-w-2xl mx-auto p-4">
+            <div className="max-w-4xl mx-auto p-4">
                 <div className="absolute right">
                     <button
                             onClick={() => setIsDailyModalOpen(true)}
@@ -32,7 +33,10 @@ export function TaskPage(){
                 <TaskForm onTaskCreated={loadTasks}/>
                 <div className="mt-5"></div>
                 {/* <TaskList tasks={tasks} onTasksUpdated={loadTasks}/> */}
-                <TaskList tasks={tasks} setTasks={setTasks} />
+                <CollapseProvider>
+                    <TaskList tasks={tasks} setTasks={setTasks} />
+                </CollapseProvider>
+
 
             </div>
         </>
