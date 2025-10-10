@@ -1,13 +1,17 @@
 import './App.css'
+import { ToastProvider } from './components/ToastProvider';
 import { AuthProvider } from './features/auth/contexts/AuthProvider';
 
 import { AppRoutes } from "./routes/AppRoutes";
 
 function App() {
     return (
-        <AuthProvider>
-            <AppRoutes />
-        </AuthProvider>
+        <ToastProvider>
+            <AuthProvider>
+                <AppRoutes />
+            </AuthProvider>
+        </ToastProvider>
+
     );
 }
 

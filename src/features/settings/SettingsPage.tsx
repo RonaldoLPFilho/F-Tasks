@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { SettingsSection } from "./SettingSection";
 import { useNavigate } from "react-router-dom";
 import { Globe, KeyRound, LogOut, MoveLeft, Tag, Timer } from "lucide-react";
@@ -6,13 +6,11 @@ import { PasswordSettings } from "./password/PasswordSettings";
 import { PomodoroSettings } from "./pomodoro/PomodoroSettings";
 import { CategorySettings } from "./categories/CategorySettings";
 import { LanguageSettings } from "./language/LanguageSettings";
-import { AuthContext } from "../auth/contexts/AuthContext";
-
+import { LogoutConfirm } from "./LogoutConfirm";
 
 export function SettingsPage(){
     const [activeSection, setActiveSection] = useState<SettingsSection>(SettingsSection.PASSWORD);
     const navigate = useNavigate();
-    const {logout} = useContext(AuthContext);
 
     const menuItems = [
         {label: "Trocar senha", icon: <KeyRound size={16}/>, section: SettingsSection.PASSWORD},
@@ -33,7 +31,7 @@ export function SettingsPage(){
           case SettingsSection.POMODORO:
             return <PomodoroSettings />;
           case SettingsSection.LOGOUT:
-             logout();
+             return <LogoutConfirm/>
           default:
             return null;
         }
