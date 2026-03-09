@@ -1,33 +1,53 @@
-import {Task} from "../types/Task";
+import { Task } from "../types/Task";
 import { ApiResponse } from "../../../types/ApiResponse";
 import api from "../../../services/AxiosInterceptor";
 
+export const getAllTasks = async (tabId?: string): Promise<Task[]> => {
+  const params = tabId ? { tabId } : {};
+  const response = await api.get<ApiResponse<Task[]>>("/tasks", { params });
+  return response.data.data;
+};
 
+export const createTask = async (data: {
+  title: string;
+  description?: string;
+  tabId: string;
+  categoryId?: string;
+  jiraId?: string;
+  completed?: boolean;
+}): Promise<Task> => {
+  const response = await api.post<ApiResponse<Task>>("/tasks", data);
+  return response.data.data;
+};
 
-export const getAllTasks = async (): Promise<Task[]> => {
-    const response = await api.get<ApiResponse<Task[]>>(`/tasks`);
-    return response.data.data;
-}
+export const toggleTaskCompletion = async (
+  id: string,
+  completed: boolean
+): Promise<void> => {
+  await api.put(`/tasks/${id}/${completed}`);
+};
 
-export const createTask = async (data: {title: string; description? : string; jiraId: string, categoryId: string}): Promise<Task> => {
-    const response = await api.post<ApiResponse<Task>>(`/tasks`, data);
-    console.log("To enviano pro back: " + data.categoryId)
-    return response.data.data
-}
+export const deleteTask = async (id: string): Promise<void> => {
+  await api.delete(`/tasks/${id}`);
+};
 
-export const toggleTaskCompletion = async (id: number, completed: boolean) => {
-    await api.put(`/tasks/${id}/${completed}`);
-}
-
-export const deleteTask =  async (id: number) => {
-    await api.delete(`/tasks/${id}`);
-}
-
-export const updateTask =  async (id: number,  data: {title: string; description? : string; completed: boolean, jiraId: string, category: string}) => {
-    await api.put(`/tasks/${id}`, data);
-}
-
-export async function reorderTasks(orderedIds: Array<string>) {
-    await api.patch("/tasks/reorder", { orderedIds });
+export const updateTask = async (
+  id: string,
+  data: {
+    title: string;
+    description?: string;
+    completed: boolean;
+    jiraId?: string;
+    categoryId?: string;
   }
+): Promise<void> => {
+  await api.put(`/tasks/${id}`, data);
+};
+
+export const reorderTasks = async (
+  tabId: string,
+  orderedIds: string[]
+): Promise<void> => {
+  await api.patch("/tasks/reorder", { tabId, orderedIds });
+};
 

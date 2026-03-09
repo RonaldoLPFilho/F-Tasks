@@ -8,7 +8,6 @@ type Props = {
   task: Task;
   onDragEnd?: () => void;
   onToggleComplete: () => void;
-  onEdit: () => void;
   onDelete: () => void;
   onUpdateTask: (updatedTask: Task) => void;
 };
@@ -17,7 +16,6 @@ export function TaskDraggableCard({
   task,
   onDragEnd,
   onToggleComplete,
-  onEdit,
   onDelete,
   onUpdateTask,
 }: Props) {
@@ -55,7 +53,6 @@ export function TaskDraggableCard({
           <TaskCard
             task={task}
             onToggleComplete={onToggleComplete}
-            onEdit={onEdit}
             onDelete={onDelete}
             onUpdateTask={onUpdateTask}
           />

@@ -1,8 +1,13 @@
-import { BadgePlus, CheckCircle, ChevronDown, ChevronUp, Plus } from "lucide-react";
+import { CheckCircle, ChevronDown, ChevronUp, Plus, Trash } from "lucide-react";
 import { Subtask } from "../types/Substask";
 import { useEffect, useState } from "react";
-import { createSubtask, toggleSubstaskCompletion } from "../services/SubtaskService";
+import {
+  createSubtask,
+  deleteSubtask,
+  toggleSubstaskCompletion,
+} from "../services/SubtaskService";
 import { useCollapse } from "../../context/CollapseContext";
+import { ConfirmModal } from "../../../../components/ConfirmModal";
 
 interface Props {
     taskId: string;
@@ -10,14 +15,15 @@ interface Props {
     onSubtasksUpdated: (newSubtasks: Subtask[]) => void;
 }
 
-export function TaskSubtasks({taskId, subtasks, onSubtasksUpdated}: Props){
-    const [isOpen, setIsOpen] = useState(false);
-    const [newSubtask, setNewSubtask] = useState("");
-    const total = subtasks.length;
-    const completed = subtasks.filter(s => s.completed).length;
-    const[subTasksState, setSubtasksState] = useState<Subtask[]>(subtasks);
-    const [isSubmitting, setSubmitting] = useState(false);
-    const {isExpanded} = useCollapse();
+export function TaskSubtasks({ taskId, subtasks, onSubtasksUpdated }: Props) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [newSubtask, setNewSubtask] = useState("");
+  const total = subtasks.length;
+  const completed = subtasks.filter((s) => s.completed).length;
+  const [subTasksState, setSubtasksState] = useState<Subtask[]>(subtasks);
+  const [isSubmitting, setSubmitting] = useState(false);
+  const [subtaskToDelete, setSubtaskToDelete] = useState<string | null>(null);
+  const { isExpanded } = useCollapse();
 
     useEffect(() => {
         setIsOpen(isExpanded);
@@ -39,20 +45,34 @@ export function TaskSubtasks({taskId, subtasks, onSubtasksUpdated}: Props){
         }
     }
 
-    const handleCompletion = async (id: string, completed: boolean) => {
-        try{
-            await toggleSubstaskCompletion(id, completed);
-            const updated = subTasksState.map(s => 
-                s.id === id ? {...s, completed} : s
-            );
-            setSubtasksState(updated);
-            onSubtasksUpdated(updated);
-        }catch(err){
-            console.error("Erro ao alterar subtrefa", err);
-        }
+  const handleCompletion = async (id: string, completed: boolean) => {
+    try {
+      await toggleSubstaskCompletion(id, completed);
+      const updated = subTasksState.map((s) =>
+        s.id === id ? { ...s, completed } : s
+      );
+      setSubtasksState(updated);
+      onSubtasksUpdated(updated);
+    } catch (err) {
+      console.error("Erro ao alterar subtarefa", err);
     }
+  };
 
-    return (
+  const handleDeleteSubtask = async () => {
+    if (!subtaskToDelete) return;
+    try {
+      await deleteSubtask(subtaskToDelete);
+      const updated = subTasksState.filter((s) => s.id !== subtaskToDelete);
+      setSubtasksState(updated);
+      onSubtasksUpdated(updated);
+    } catch (err) {
+      console.error("Erro ao excluir subtarefa", err);
+    } finally {
+      setSubtaskToDelete(null);
+    }
+  };
+
+  return (
         <div className="m-4">
             <button
                 className="text-lg text-gray-600 flex items-center gap-1 hover:text-purple-600"
@@ -69,16 +89,42 @@ export function TaskSubtasks({taskId, subtasks, onSubtasksUpdated}: Props){
             {isOpen &&(
                 <div className="ml-6 space-y-2">
                     {subtasks.map((sub) => (
-                        <div 
-                            key={sub.id} 
-                            className="flex items-center gap-2 text-sm mt-4"
-                            onClick={() => handleCompletion(sub.id, !sub.completed)}
+                      <div
+                        key={sub.id}
+                        className="flex items-center gap-2 text-sm mt-4"
+                      >
+                        <div
+                          className="flex items-center gap-2 flex-1 cursor-pointer min-w-0"
+                          onClick={() =>
+                            handleCompletion(sub.id, !sub.completed)
+                          }
                         >
-                            <div className="w-5 h-5 flex items-center justify-center rounded-full border-2 border-purple-500"> 
-                                {sub.completed && <CheckCircle className="h-4 h-4 text-purple-600"/>}
-                            </div>
-                            <span className={sub.completed ? "line-through text-gray-800" : ""}>{sub.title}</span>
+                          <div className="w-5 h-5 flex items-center justify-center rounded-full border-2 border-purple-500 shrink-0">
+                            {sub.completed && (
+                              <CheckCircle className="h-4 w-4 text-purple-600" />
+                            )}
+                          </div>
+                          <span
+                            className={
+                              sub.completed
+                                ? "line-through text-gray-800"
+                                : "text-gray-800"
+                            }
+                          >
+                            {sub.title}
+                          </span>
                         </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSubtaskToDelete(sub.id);
+                          }}
+                          aria-label={`Excluir subtarefa ${sub.title}`}
+                          className="p-1.5 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 shrink-0"
+                        >
+                          <Trash className="w-4 h-4" />
+                        </button>
+                      </div>
                     ))}
                     
                     <form
@@ -103,6 +149,12 @@ export function TaskSubtasks({taskId, subtasks, onSubtasksUpdated}: Props){
                     </form>
                 </div>
             )}
+
+      <ConfirmModal
+        isOpen={subtaskToDelete !== null}
+        onConfirm={handleDeleteSubtask}
+        onCancel={() => setSubtaskToDelete(null)}
+      />
         </div>
-    )
+  );
 }

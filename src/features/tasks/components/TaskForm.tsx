@@ -1,43 +1,50 @@
-import {createTask} from "../services/TaskService.ts"
-import React, {use, useEffect, useState} from "react";
-import { FloatingLabelInput } from "../../../components/FloatingLabelInput.tsx"
-import { FloatingLabelSelect } from "../../../components/FloatingLabelSelect.tsx";
-import { Category } from "../../../types/Category.ts";
-import { getAllCategories } from "../../settings/categories/CategoryService.ts";
-import { label } from "framer-motion/client";
+import { createTask } from "../services/TaskService";
+import { useEffect, useState } from "react";
+import { FloatingLabelInput } from "../../../components/FloatingLabelInput";
+import { FloatingLabelSelect } from "../../../components/FloatingLabelSelect";
+import { Category } from "../../../types/Category";
+import { getAllCategories } from "../../settings/categories/CategoryService";
 import { FilePenLine } from "lucide-react";
 
-
 interface Props {
-    onTaskCreated: () => void;
+  tabId: string | null;
+  onTaskCreated: () => void;
 }
 
-export function TaskForm({onTaskCreated}: Props) {
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
-    const [jiraId, setJiraId] = useState("");
-    const [categoryId, setCategoryId] = useState("");
-    const [categories, setCategories] = useState<Category[]>([]);
+export function TaskForm({ tabId, onTaskCreated }: Props) {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [jiraId, setJiraId] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
 
-    useEffect(() => {
-        getAllCategories()
-            .then(setCategories)
-            .catch((err) => console.error("Erro ao carregar categorias", err))
-    }, [])
+  useEffect(() => {
+    getAllCategories()
+      .then(setCategories)
+      .catch((err) => console.error("Erro ao carregar categorias", err));
+  }, []);
 
-    const handleSubmit = async (e: React.FormEvent)=> {
-        e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tabId) return;
 
-        try{
-            await createTask({title, description, jiraId, categoryId});
-            setTitle("");
-            setDescription("");
-            setCategoryId("");
-            onTaskCreated();
-        }catch(err){
-            console.error(err);
-        }
-    }; 
+    try {
+      await createTask({
+        title,
+        description: description || undefined,
+        tabId,
+        categoryId: categoryId || undefined,
+        jiraId: jiraId || undefined,
+      });
+      setTitle("");
+      setDescription("");
+      setCategoryId("");
+      setJiraId("");
+      onTaskCreated();
+    } catch (err) {
+      console.error(err);
+    }
+  }; 
 
     const categoryOptions = categories.map((cat) => ({
         label: cat.name,
@@ -92,9 +99,13 @@ export function TaskForm({onTaskCreated}: Props) {
                 </div>
             </div>
 
-            <br/>
-            <button type="submit" className="bg-purple-600 hover:bg-purple-700 text-white py-2 rounded font-semibold">
-                Criar
+            <br />
+            <button
+              type="submit"
+              disabled={!tabId}
+              className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white py-2 rounded font-semibold"
+            >
+              Criar
             </button>
         </form>
     )

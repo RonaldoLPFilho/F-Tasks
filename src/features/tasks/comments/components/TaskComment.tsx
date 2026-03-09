@@ -1,8 +1,16 @@
 import { useEffect, useState } from "react";
 import { Comment } from "../types/Comment";
-import { CalendarDays, ChevronDown, ChevronUp, MessageSquare, Send } from "lucide-react";
-import { createComment } from "../services/CommentService";
+import {
+  CalendarDays,
+  ChevronDown,
+  ChevronUp,
+  MessageSquare,
+  Send,
+  Trash,
+} from "lucide-react";
+import { createComment, deleteComment } from "../services/CommentService";
 import { useCollapse } from "../../context/CollapseContext";
+import { ConfirmModal } from "../../../../components/ConfirmModal";
 
 interface Props {
     taskId: string;
@@ -10,35 +18,53 @@ interface Props {
     onCommentsUpdated: (newComments: Comment[]) => void;
 }
 
-export function TaskComments({taskId, comments, onCommentsUpdated}: Props){
-    const [isOpen, setIsOpen] = useState(false);
-    const [newComment, setNewComment] = useState("");
-    const [commentsState, setCommentState] = useState<Comment[]>(comments);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const {isExpanded} = useCollapse();
+export function TaskComments({ taskId, comments, onCommentsUpdated }: Props) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [newComment, setNewComment] = useState("");
+  const [commentsState, setCommentState] = useState<Comment[]>(comments);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
+  const { isExpanded } = useCollapse();
 
     useEffect(() => {
         setIsOpen(isExpanded);
     }, [isExpanded])
 
-    const handleCreateComment = async () => {
-        if (!newComment.trim()) return;
+  const handleCreateComment = async () => {
+    if (!newComment.trim()) return;
 
-        try{
-            setIsSubmitting(true);
-            const created = await createComment({description: newComment, taskId});
-            const updated = [...commentsState, created];
-            setCommentState(updated);
-            onCommentsUpdated(updated);
-            setNewComment("");
-        }catch(err){
-            console.error("Erro ao aidcionar comentario", err);
-        }finally{
-            setIsSubmitting(false);
-        }
+    try {
+      setIsSubmitting(true);
+      const created = await createComment({
+        description: newComment,
+        taskId,
+      });
+      const updated = [...commentsState, created];
+      setCommentState(updated);
+      onCommentsUpdated(updated);
+      setNewComment("");
+    } catch (err) {
+      console.error("Erro ao adicionar comentário", err);
+    } finally {
+      setIsSubmitting(false);
     }
+  };
 
-    const formatDate = (dateStr: string) => {
+  const handleDeleteComment = async () => {
+    if (!commentToDelete) return;
+    try {
+      await deleteComment(commentToDelete);
+      const updated = commentsState.filter((c) => c.id !== commentToDelete);
+      setCommentState(updated);
+      onCommentsUpdated(updated);
+    } catch (err) {
+      console.error("Erro ao excluir comentário", err);
+    } finally {
+      setCommentToDelete(null);
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
         const date = new Date(dateStr);
         return date.toLocaleDateString("pt-BR", {
             day: "2-digit",
@@ -65,19 +91,28 @@ export function TaskComments({taskId, comments, onCommentsUpdated}: Props){
             {isOpen &&(
                 <div className="ml-6 mt-2 space-y-3">
                     {comments.map((comment) => (
-                        <div 
-                            key={comment.id} 
-                            className="bg-gray-100 rounded-xl p-3 text-sm text-gray-800"
-                        >
-                            <div className="flex justify-between items-center">
-                                <p className="font-semibold">{comment.author}</p>
-                                <div className="flex items-center gap-1 text-xs text-gray-500">
-                                    <CalendarDays className="w-4 h-4"/>
-                                    {formatDate(comment.createdAt)}
-                                </div>
+                      <div
+                        key={comment.id}
+                        className="bg-gray-100 rounded-xl p-3 text-sm text-gray-800"
+                      >
+                        <div className="flex justify-between items-start gap-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold">{comment.author}</p>
+                            <div className="flex items-center gap-1 text-xs text-gray-500">
+                              <CalendarDays className="w-4 h-4 shrink-0" />
+                              {formatDate(comment.createdAt)}
                             </div>
                             <p className="mt-1">{comment.description}</p>
+                          </div>
+                          <button
+                            onClick={() => setCommentToDelete(comment.id)}
+                            aria-label={`Excluir comentário`}
+                            className="p-1.5 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 shrink-0"
+                          >
+                            <Trash className="w-4 h-4" />
+                          </button>
                         </div>
+                      </div>
                     ))}
 
                     <form
@@ -104,6 +139,12 @@ export function TaskComments({taskId, comments, onCommentsUpdated}: Props){
                     </form>
                 </div>
             )}
+
+      <ConfirmModal
+        isOpen={commentToDelete !== null}
+        onConfirm={handleDeleteComment}
+        onCancel={() => setCommentToDelete(null)}
+      />
         </div>
-    )
+  );
 }

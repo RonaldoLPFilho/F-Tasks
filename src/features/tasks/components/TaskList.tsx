@@ -1,24 +1,24 @@
 import { useEffect, useRef, useState } from "react";
 import { Reorder } from "framer-motion";
-import { ChevronDown, ClipboardList, ClipboardListIcon, Expand, ExpandIcon, ListCollapse, ListCollapseIcon } from "lucide-react";
+import { ChevronDown, ClipboardList } from "lucide-react";
 import { Task } from "../types/Task";
-import { TaskEditModal } from "./TaskEditModal";
 import { TaskDraggableCard } from "./TaskDraggableCard";
-import { deleteTask, toggleTaskCompletion } from "../services/TaskService";
-import { reorderTasks } from "../services/TaskService";
+import { deleteTask, toggleTaskCompletion, reorderTasks } from "../services/TaskService";
 import { useCollapse } from "../context/CollapseContext";
+import { ConfirmModal } from "../../../components/ConfirmModal";
 
 interface Props {
   tasks: Task[];
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
+  tabId: string | null;
+  onTasksUpdated: () => void;
 }
 
-export function TaskList({ tasks, setTasks }: Props) {
-  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+export function TaskList({ tasks, setTasks, tabId, onTasksUpdated }: Props) {
   const [localTasks, setLocalTasks] = useState<Task[]>(tasks);
+  const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
   const prevTasksRef = useRef<Task[]>(tasks);
-  const {toggleAll, isExpanded} = useCollapse();
+  const { toggleAll, isExpanded } = useCollapse();
 
   useEffect(() => {
     setLocalTasks(tasks);
@@ -26,48 +26,50 @@ export function TaskList({ tasks, setTasks }: Props) {
   }, [tasks]);
 
   const updateTaskInList = (updatedTask: Task) => {
-    setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
+    setTasks((prev) =>
+      prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
+    );
   };
 
-  const toggleTaskComplete = async (id: number, newStatus: boolean) => {
+  const toggleTaskComplete = async (id: string, newStatus: boolean) => {
     try {
       await toggleTaskCompletion(id, newStatus);
-      setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, completed: newStatus } : t)));
+      setTasks((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, completed: newStatus } : t))
+      );
     } catch (error) {
       console.error("Erro ao atualizar o status da tarefa ", error);
     }
   };
 
-  const handleDeleteTask = async (id: number) => {
+  const handleDeleteTaskClick = (id: string) => {
+    setTaskToDelete(id);
+  };
+
+  const handleConfirmDeleteTask = async () => {
+    if (!taskToDelete) return;
     try {
-      if (confirm("Tem certeza que deseja deletar essa tarefa?")) {
-        await deleteTask(id);
-        setTasks((prev) => prev.filter((t) => t.id !== id));
-      }
+      await deleteTask(taskToDelete);
+      setTasks((prev) => prev.filter((t) => t.id !== taskToDelete));
     } catch (error) {
       console.error("Erro ao deletar a task", error);
+    } finally {
+      setTaskToDelete(null);
     }
   };
 
-  const handleEditTask = (task: Task) => {
-    setTaskToEdit(task);
-    setIsModalOpen(true);
-  };
-
-  //  solta o drag - persiste ordem
   const handleReorderEnd = async () => {
-    const orderedIds = localTasks.map((t) => t.id as unknown as string);
+    if (!tabId) return;
+    const orderedIds = localTasks.map((t) => t.id);
     const snapshot = prevTasksRef.current;
-    
+
     setTasks(localTasks);
 
     try {
-      await reorderTasks(orderedIds);
+      await reorderTasks(tabId, orderedIds);
       prevTasksRef.current = localTasks;
     } catch (e) {
       console.error("Falha ao persistir reorder, desfazendo…", e);
-      
-      // rollback
       setLocalTasks(snapshot);
       setTasks(snapshot);
     }
@@ -106,24 +108,18 @@ export function TaskList({ tasks, setTasks }: Props) {
             key={task.id}
             task={task}
             onDragEnd={handleReorderEnd}
-            onToggleComplete={() => toggleTaskComplete(task.id as unknown as number, !task.completed)}
-            onEdit={() => handleEditTask(task)}
-            onDelete={() => handleDeleteTask(task.id as unknown as number)}
+            onToggleComplete={() => toggleTaskComplete(task.id, !task.completed)}
+            onDelete={() => handleDeleteTaskClick(task.id)}
             onUpdateTask={updateTaskInList}
           />
         ))}
       </Reorder.Group>
 
-      {isModalOpen && taskToEdit && (
-        <TaskEditModal
-          task={taskToEdit}
-          onClose={() => {
-            setIsModalOpen(false);
-            setTaskToEdit(null);
-          }}
-          onSaved={() => {}}
-        />
-      )}
+      <ConfirmModal
+        isOpen={taskToDelete !== null}
+        onConfirm={handleConfirmDeleteTask}
+        onCancel={() => setTaskToDelete(null)}
+      />
     </div>
   );
 }

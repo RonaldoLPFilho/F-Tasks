@@ -8,5 +8,9 @@ export const createSubtask = async(data: {title: string, taskId: string}): Promi
 }
 
 export const toggleSubstaskCompletion = async (id: string, completed: boolean) => {
-    await api.put(`/subtasks/${id}/${completed}`);
-}
+  await api.put(`/subtasks/${id}/${completed}`);
+};
+
+export const deleteSubtask = async (id: string): Promise<void> => {
+  await api.delete(`/subtasks/${id}`);
+};
