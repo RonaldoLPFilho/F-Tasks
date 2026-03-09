@@ -1,4 +1,3 @@
-import { div } from "framer-motion/client";
 import { Settings } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -38,10 +37,10 @@ export function UserDropdownMenu({username, onLogout}: Props){
                         className="block w-full text-left px-4 py-2 hover:bg-purple-100 text-sm"
                         onClick={() => {
                             setOpen(false);
-                            navigate("/categories");
+                            navigate("/settings");
                         }}
                     >
-                        Categorias
+                        Configurações
                     </button>
                 </div>
             )}

@@ -1,4 +1,3 @@
-import { div } from "framer-motion/client";
 import { SelectHTMLAttributes } from "react";
 
 interface Option {

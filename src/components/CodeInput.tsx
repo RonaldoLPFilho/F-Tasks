@@ -1,4 +1,4 @@
-import { ReactHTMLElement, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 interface CodeInputProps{
     onCodeComplete?: (code: string) => void;

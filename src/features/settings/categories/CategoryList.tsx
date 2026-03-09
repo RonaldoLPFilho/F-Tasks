@@ -4,17 +4,11 @@ import { Tags } from "lucide-react";
 
 interface Props {
     categories: Category[];
-    onCategoriesUpdated: () => void; 
+    onEdit: (category: Category) => void;
+    onDelete: (category: Category) => void;
 }
 
-export function CategoryList({categories, onCategoriesUpdated}: Props ){
-    const handleDelete = async (id: string) => {
-        if(confirm("Deseja excluir essa categoria?")){
-            //await deleteCategory(id);
-            onCategoriesUpdated();
-        }
-    };
-
+export function CategoryList({categories, onEdit, onDelete}: Props ){
     return (
         <div className="flex flex-col gap-3 border border-gray-200 rounded-lg p-4">
             <h1 className="text-xl font-semibold flex items-center justify-center gap-2 text-purple-700 mb-4">
@@ -25,9 +19,10 @@ export function CategoryList({categories, onCategoriesUpdated}: Props ){
                 {categories.map((category) => (
                     <CardItem
                         key={category.id}
-                        title={category.name}
+                        title={category.defaultCategory ? `${category.name} (padrão)` : category.name}
                         color={category.color}
-                        onDelete={() => handleDelete(category.id)}
+                        onEdit={() => onEdit(category)}
+                        onDelete={() => onDelete(category)}
                     />
                 ))}
             </ul>

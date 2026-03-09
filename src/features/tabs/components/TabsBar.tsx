@@ -65,7 +65,7 @@ export function TabsBar() {
 
   const handleRemoveConfirm = async (password: string) => {
     if (!tabToRemove) return false;
-    const hasTasks = (tabToRemove.tasks?.length ?? 0) > 0;
+    const hasTasks = (tabToRemove.sections?.some((section) => section.tasks.length > 0) ?? false);
     const success = await removeTab(tabToRemove.id, hasTasks ? password : undefined);
     if (success) {
       setTabToRemove(null);
@@ -166,7 +166,9 @@ export function TabsBar() {
       {tabToRemove && (
         <RemoveTabModal
           tabName={tabToRemove.name}
-          hasTasks={(tabToRemove.tasks?.length ?? 0) > 0}
+          hasTasks={
+            tabToRemove.sections?.some((section) => section.tasks.length > 0) ?? false
+          }
           onConfirm={handleRemoveConfirm}
           onCancel={handleRemoveCancel}
         />

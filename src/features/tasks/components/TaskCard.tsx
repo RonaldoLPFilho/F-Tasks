@@ -9,6 +9,8 @@ import {
   X,
 } from "lucide-react";
 import { Divider } from "../../../components/Divider";
+import { useToast } from "../../../components/toast/ToastProvider";
+import { extractApiErrorMessage } from "../../../utils/extractApiErrorMessage";
 import { TaskSubtasks } from "../subtasks/components/TaskSubtasks";
 import { TaskComments } from "../comments/components/TaskComment";
 import { Task } from "../types/Task";
@@ -31,6 +33,7 @@ export function TaskCard({
   const [editTitle, setEditTitle] = useState(task.title);
   const [editDescription, setEditDescription] = useState(task.description ?? "");
   const [isSaving, setIsSaving] = useState(false);
+  const { showSuccess, showError } = useToast();
 
   useEffect(() => {
     setEditTitle(task.title);
@@ -59,8 +62,10 @@ export function TaskCard({
         description: editDescription.trim() || undefined,
       });
       setIsEditing(false);
+      showSuccess("Task atualizada com sucesso.");
     } catch (err) {
       console.error("Erro ao atualizar a tarefa", err);
+      showError(extractApiErrorMessage(err, "Não foi possível atualizar a task."));
     } finally {
       setIsSaving(false);
     }
@@ -78,7 +83,7 @@ export function TaskCard({
 
   return (
     <div
-      className="border-l-4 rounded-xl shadow-sm p-6 m-4 bg-white"
+      className="w-full border-l-4 rounded-xl shadow-sm p-6 bg-white"
       style={{ borderLeftColor: borderColor }}
     >
       <div className="flex justify-between items-start">

@@ -5,6 +5,8 @@ import { FloatingLabelSelect } from "../../../components/FloatingLabelSelect";
 import { Category } from "../../../types/Category";
 import { getAllCategories } from "../../settings/categories/CategoryService";
 import { FilePenLine } from "lucide-react";
+import { useToast } from "../../../components/toast/ToastProvider";
+import { extractApiErrorMessage } from "../../../utils/extractApiErrorMessage";
 
 interface Props {
   tabId: string | null;
@@ -17,6 +19,7 @@ export function TaskForm({ tabId, onTaskCreated }: Props) {
   const [jiraId, setJiraId] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
+  const { showSuccess, showError } = useToast();
 
   useEffect(() => {
     getAllCategories()
@@ -41,8 +44,10 @@ export function TaskForm({ tabId, onTaskCreated }: Props) {
       setCategoryId("");
       setJiraId("");
       onTaskCreated();
+      showSuccess("Task criada com sucesso.");
     } catch (err) {
       console.error(err);
+      showError(extractApiErrorMessage(err, "Não foi possível criar a task."));
     }
   }; 
 

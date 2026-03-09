@@ -1,4 +1,3 @@
-import { li } from "framer-motion/client";
 import { CheckCircle, Circle, Pencil, Trash2 } from "lucide-react";
 
 interface CardItemProps {

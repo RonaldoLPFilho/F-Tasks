@@ -3,6 +3,8 @@ import { FloatingLabelInput } from "../../../components/FloatingLabelInput";
 import { PasswordStrengthBar } from "../components/PasswordStrengthBar";
 import { register } from "../services/RegisterService";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../../../components/toast/ToastProvider";
+import { extractApiErrorMessage } from "../../../utils/extractApiErrorMessage";
 
 
 export function RegisterPage() {
@@ -11,6 +13,7 @@ export function RegisterPage() {
     const [password, setPassword] = useState("");
   
     const navigate = useNavigate();
+    const { showSuccess, showError } = useToast();
   
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -18,10 +21,11 @@ export function RegisterPage() {
 
         try {
           await register({ username, email, password });
+          showSuccess("Conta criada com sucesso.");
           navigate("/login");
         } catch (err) {
           console.error(err);
-          alert("Erro ao criar conta. Tente novamente.");
+          showError(extractApiErrorMessage(err, "Erro ao criar conta. Tente novamente."));
         }
       };
 

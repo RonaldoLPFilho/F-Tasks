@@ -2,7 +2,9 @@ import { useState } from "react";
 import { FloatingLabelInput } from "../../../components/FloatingLabelInput";
 import { HexColorPicker } from "react-colorful";
 import { createCategory } from "./CategoryService";
-import { CirclePlus, Tags } from "lucide-react";
+import { CirclePlus } from "lucide-react";
+import { useToast } from "../../../components/toast/ToastProvider";
+import { extractApiErrorMessage } from "../../../utils/extractApiErrorMessage";
 
 interface Props{
     onCategoryCreated: () => void;
@@ -10,17 +12,20 @@ interface Props{
 
 export function CategoryForm({onCategoryCreated} : Props){
     const [name, setName] = useState("");
-    const [color, setColor] = useState("");
+    const [color, setColor] = useState("#9333EA");
+    const { showSuccess, showError } = useToast();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try{
             await createCategory({name, color});
             setName("");
-            setColor("#aabbcc");
+            setColor("#9333EA");
             onCategoryCreated();
+            showSuccess("Categoria criada com sucesso.");
         }catch(err){
             console.error("Erro ao criar categoria", err);
+            showError(extractApiErrorMessage(err, "Não foi possível criar a categoria."));
         }
     }
 

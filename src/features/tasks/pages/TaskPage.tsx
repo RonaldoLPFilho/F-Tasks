@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
-import { Task } from "../types/Task";
-import { getAllTasks } from "../services/TaskService";
 import { TaskForm } from "../components/TaskForm";
-import { TaskList } from "../components/TaskList";
+import { TaskSectionsBoard } from "../components/TaskSectionsBoard";
 import { DailyModal } from "../../daily/components/DailyModal";
 import { CollapseProvider } from "../context/CollapseContext";
 import { TabsProvider, useTabs } from "../../tabs/context/TabsContext";
 import { TabsBar } from "../../tabs/components/TabsBar";
-import { SectionMenu, type Section } from "../../tabs/components/SectionMenu";
+import { SectionMenu, type PageSection } from "../../tabs/components/SectionMenu";
 import { FilesPlaceholder } from "../../files/pages/FilesPlaceholder";
+import { getSections } from "../services/SectionService";
+import { TaskSection } from "../types/TaskSection";
 
 export function TaskPage() {
-  const [activeSection, setActiveSection] = useState<Section>("tarefas");
+  const [activeSection, setActiveSection] = useState<PageSection>("tarefas");
 
   return (
     <TabsProvider>
@@ -24,20 +24,32 @@ export function TaskPage() {
 
 function TaskPageContent() {
   const { activeTabId } = useTabs();
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [sections, setSections] = useState<TaskSection[]>([]);
   const [isDailyModalOpen, setIsDailyModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const loadTasks = useCallback(async () => {
+  const loadSections = useCallback(async () => {
     if (!activeTabId) {
-      setTasks([]);
+      setIsLoading(false);
+      setSections([]);
       return;
     }
-    getAllTasks(activeTabId).then(setTasks).catch(console.error);
+
+    setIsLoading(true);
+    try {
+      const data = await getSections(activeTabId);
+      setSections(data);
+    } catch (error) {
+      console.error("Erro ao carregar sections", error);
+      setSections([]);
+    } finally {
+      setIsLoading(false);
+    }
   }, [activeTabId]);
 
   useEffect(() => {
-    loadTasks();
-  }, [loadTasks]);
+    void loadSections();
+  }, [loadSections]);
 
   return (
     <div className="max-w-4xl mx-auto p-4">
@@ -54,15 +66,27 @@ function TaskPageContent() {
           language="es-AR"
         />
       </div>
-      <TaskForm tabId={activeTabId} onTaskCreated={loadTasks} />
+      <TaskForm tabId={activeTabId} onTaskCreated={loadSections} />
       <div className="mt-5" />
       <CollapseProvider>
-        <TaskList
-          tasks={tasks}
-          setTasks={setTasks}
-          tabId={activeTabId}
-          onTasksUpdated={loadTasks}
-        />
+        {activeTabId ? (
+          isLoading ? (
+            <div className="rounded-xl border border-gray-200 bg-white p-6 text-center text-sm text-gray-500 shadow-md">
+              Carregando sections...
+            </div>
+          ) : (
+            <TaskSectionsBoard
+              sections={sections}
+              setSections={setSections}
+              tabId={activeTabId}
+              onSectionsUpdated={loadSections}
+            />
+          )
+        ) : (
+          <div className="rounded-xl border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-500 shadow-md">
+            Crie ou selecione uma aba para organizar tarefas por section.
+          </div>
+        )}
       </CollapseProvider>
     </div>
   );

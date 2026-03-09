@@ -1,4 +1,4 @@
-import { Task } from "../../tasks/types/Task";
+import { TaskSection } from "../../tasks/types/TaskSection";
 
 export interface Tab {
   id: string;
@@ -7,5 +7,5 @@ export interface Tab {
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
-  tasks?: Task[];
+  sections?: TaskSection[];
 }

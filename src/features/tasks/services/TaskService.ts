@@ -2,6 +2,11 @@ import { Task } from "../types/Task";
 import { ApiResponse } from "../../../types/ApiResponse";
 import api from "../../../services/AxiosInterceptor";
 
+export interface SectionUpdatePayload {
+  sectionId: string;
+  orderedIds: string[];
+}
+
 export const getAllTasks = async (tabId?: string): Promise<Task[]> => {
   const params = tabId ? { tabId } : {};
   const response = await api.get<ApiResponse<Task[]>>("/tasks", { params });
@@ -46,8 +51,7 @@ export const updateTask = async (
 
 export const reorderTasks = async (
   tabId: string,
-  orderedIds: string[]
+  sectionUpdates: SectionUpdatePayload[]
 ): Promise<void> => {
-  await api.patch("/tasks/reorder", { tabId, orderedIds });
+  await api.patch("/tasks/reorder", { tabId, sectionUpdates });
 };
-

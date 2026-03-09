@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { FloatingLabelInput } from "../../../components/FloatingLabelInput";
 import { PasswordStrengthBar } from "../../auth/components/PasswordStrengthBar";
-import { div } from "framer-motion/client";
 import { CodeConfirmation } from "./CodeConfirmation";
 
 export function PasswordSettings() {
@@ -11,8 +10,6 @@ export function PasswordSettings() {
   const [passError, setPassError] = useState(false);
 
   const [isConfirmationPhase, setIsCofirmationPage] = useState(false);
-  const [confirmationCode, setConfirmationCode] = useState("");
-
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword.match(passwordConfirmation)) {
@@ -20,10 +17,6 @@ export function PasswordSettings() {
     } else {
       setPassError(true);
     }
-  };
-
-  const handleConfirmOldPassword = async () => {
-
   };
 
   return (
@@ -38,6 +31,7 @@ export function PasswordSettings() {
             label="Senha Atual"
             showPasswordToggle
             required
+            value={oldPassword}
             onChange={(e) => setOldPassword(e.target.value)}
           />
 

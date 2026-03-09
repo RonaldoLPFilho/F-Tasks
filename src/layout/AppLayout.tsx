@@ -1,11 +1,14 @@
 import { Outlet } from "react-router-dom";
-import { PomodoroTimer } from "../features/pomodoro/components/PomodoroTimer";
+import { ProductivityWidget } from "../features/widget/components/ProductivityWidget";
+import { WidgetMediaProvider } from "../features/widget/context/WidgetMediaProvider";
 
 export function AppLayout(){
     return (
-        <div className="relative">
-            <Outlet />
-            <PomodoroTimer/>
-        </div>
+        <WidgetMediaProvider>
+            <div className="relative">
+                <Outlet />
+                <ProductivityWidget />
+            </div>
+        </WidgetMediaProvider>
     )
 }

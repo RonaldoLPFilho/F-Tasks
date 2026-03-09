@@ -5,6 +5,7 @@ import { Subtask } from "../subtasks/types/Substask";
 export interface Task {
     id: string;
     tabId: string;
+    sectionId: string;
     title: string;
     description?: string;
     completed: boolean;

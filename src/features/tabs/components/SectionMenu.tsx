@@ -1,10 +1,10 @@
 import { ClipboardList, Folder } from "lucide-react";
 
-export type Section = "tarefas" | "arquivos";
+export type PageSection = "tarefas" | "arquivos";
 
 interface SectionMenuProps {
-  activeSection: Section;
-  onSectionChange: (section: Section) => void;
+  activeSection: PageSection;
+  onSectionChange: (section: PageSection) => void;
 }
 
 export function SectionMenu({ activeSection, onSectionChange }: SectionMenuProps) {
