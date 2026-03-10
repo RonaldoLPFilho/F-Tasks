@@ -12,6 +12,7 @@ import {
   createTab as createTabApi,
   deleteTab as deleteTabApi,
 } from "../services/TabService";
+import { removeTabFromState, resolveActiveTabId } from "./tabState";
 
 interface TabsContextValue {
   tabs: Tab[];
@@ -42,10 +43,7 @@ export function TabsProvider({ children }: TabsProviderProps) {
     try {
       const data = await getTabs();
       setTabs(data);
-      setActiveTabId((prev) => {
-        if (prev && data.some((t) => t.id === prev)) return prev;
-        return data[0]?.id ?? null;
-      });
+      setActiveTabId((prev) => resolveActiveTabId(prev, data));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao carregar abas");
       setTabs([]);
@@ -78,18 +76,17 @@ export function TabsProvider({ children }: TabsProviderProps) {
     async (tabId: string, password?: string): Promise<boolean> => {
       try {
         await deleteTabApi(tabId, password);
-        setTabs((prev) => prev.filter((t) => t.id !== tabId));
-        setActiveTabId((prev) => {
-          if (prev !== tabId) return prev;
-          const remaining = tabs.filter((t) => t.id !== tabId);
-          return remaining[0]?.id ?? null;
+        setTabs((prev) => {
+          const nextState = removeTabFromState(prev, tabId, activeTabId);
+          setActiveTabId(nextState.activeTabId);
+          return nextState.tabs;
         });
         return true;
       } catch {
         return false;
       }
     },
-    [tabs]
+    [activeTabId]
   );
 
   const value: TabsContextValue = {

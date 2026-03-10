@@ -3,6 +3,8 @@ import { FloatingLabelInput } from "../../../components/FloatingLabelInput";
 import { PasswordStrengthBar } from "../components/PasswordStrengthBar";
 import { useNavigate, useParams } from "react-router-dom";
 import { resetPassword, validateToken } from "../services/ResetPasswordService";
+import { useToast } from "../../../components/toast/ToastProvider";
+import { extractApiErrorMessage } from "../../../utils/extractApiErrorMessage";
 
 
 export function ResetPasswordPage() {
@@ -15,6 +17,7 @@ export function ResetPasswordPage() {
     const [tokenValid, setTokenValid] = useState(true);
 
     const navigate = useNavigate();
+    const { showError, showSuccess } = useToast();
 
 
     useEffect(() =>  {
@@ -37,17 +40,16 @@ export function ResetPasswordPage() {
         e.preventDefault();
 
         if(!token){
-            alert("Token de recuperação inválido");
+            showError("Token de recuperação inválido.");
             return;
         }
 
         try{
              await resetPassword(token, password);
-             await alert("Alteração realizada com sucesso!")
+             showSuccess("Senha alterada com sucesso.");
              navigate("/login")
         } catch(err){
-            console.error(err);
-            alert("Erro ao mudar a senha");
+            showError(extractApiErrorMessage(err, "Não foi possível alterar a senha."));
         }
     }
 

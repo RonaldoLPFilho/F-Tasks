@@ -15,12 +15,15 @@ import { TaskSubtasks } from "../subtasks/components/TaskSubtasks";
 import { TaskComments } from "../comments/components/TaskComment";
 import { Task } from "../types/Task";
 import { updateTask } from "../services/TaskService";
+import { splitHighlightedText } from "../utils/highlightSearchText";
 
 interface TaskCardProps {
   task: Task;
   onToggleComplete: () => void;
   onDelete: () => void;
   onUpdateTask: (updatedTask: Task) => void;
+  readOnly?: boolean;
+  highlightTerms?: string[];
 }
 
 export function TaskCard({
@@ -28,6 +31,8 @@ export function TaskCard({
   onToggleComplete,
   onDelete,
   onUpdateTask,
+  readOnly = false,
+  highlightTerms = [],
 }: TaskCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(task.title);
@@ -90,8 +95,8 @@ export function TaskCard({
         <div className="flex items-start gap-3 flex-1 min-w-0">
           <button
             onClick={onToggleComplete}
-            className="text-gray-600 hover:text-black shrink-0"
-            disabled={isEditing}
+            className={`text-gray-600 shrink-0 ${readOnly ? "cursor-default" : "hover:text-black"}`}
+            disabled={isEditing || readOnly}
           >
             {task.completed ? (
               <CheckCircle size={20} className="text-violet-600" />
@@ -143,7 +148,15 @@ export function TaskCard({
                     task.completed ? "line-through text-gray-400" : "text-gray-800"
                   }`}
                 >
-                  {task.title}
+                  {splitHighlightedText(task.title, highlightTerms).map((part, index) =>
+                    part.highlighted ? (
+                      <mark key={index} className="rounded bg-yellow-200 px-0.5 text-gray-900">
+                        {part.text}
+                      </mark>
+                    ) : (
+                      <span key={index}>{part.text}</span>
+                    )
+                  )}
                 </h3>
 
                 <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
@@ -162,7 +175,17 @@ export function TaskCard({
                 </div>
 
                 <p className="text-sm text-gray-600 mt-6 mb-6">
-                  {task.description || (
+                  {task.description ? (
+                    splitHighlightedText(task.description, highlightTerms).map((part, index) =>
+                      part.highlighted ? (
+                        <mark key={index} className="rounded bg-yellow-200 px-0.5 text-gray-900">
+                          {part.text}
+                        </mark>
+                      ) : (
+                        <span key={index}>{part.text}</span>
+                      )
+                    )
+                  ) : (
                     <span className="text-gray-400 italic">Sem descrição</span>
                   )}
                 </p>
@@ -171,7 +194,7 @@ export function TaskCard({
           </div>
         </div>
 
-        {!isEditing && (
+        {!isEditing && !readOnly && (
           <div className="flex gap-2 shrink-0">
             <button
               onClick={handleStartEdit}
@@ -196,6 +219,8 @@ export function TaskCard({
           <TaskSubtasks
             taskId={task.id}
             subtasks={task.subtasks}
+            readOnly={readOnly}
+            highlightTerms={highlightTerms}
             onSubtasksUpdated={(newSubs) => {
               onUpdateTask({ ...task, subtasks: newSubs });
             }}
@@ -204,6 +229,8 @@ export function TaskCard({
           <TaskComments
             taskId={task.id}
             comments={task.comments}
+            readOnly={readOnly}
+            highlightTerms={highlightTerms}
             onCommentsUpdated={(newComments) => {
               onUpdateTask({ ...task, comments: newComments });
             }}

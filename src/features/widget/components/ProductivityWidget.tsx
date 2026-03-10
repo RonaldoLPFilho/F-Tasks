@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { LofiRadioPlayer } from "../../lofi-radio/components/LofiRadioPlayer";
 import { PomodoroTimer } from "../../pomodoro/components/PomodoroTimer";
 import { useWidgetMedia } from "../context/WidgetMediaProvider";
+import { shouldHideWidget } from "../utils/widgetVisibility";
 
 export function ProductivityWidget() {
   const {
@@ -14,9 +15,8 @@ export function ProductivityWidget() {
     minimizeWidget,
   } = useWidgetMedia();
   const location = useLocation();
-  const hideOnRoutes = ["/login", "/register", "/reset-password"];
 
-  if (hideOnRoutes.includes(location.pathname)) {
+  if (shouldHideWidget(location.pathname)) {
     return null;
   }
 

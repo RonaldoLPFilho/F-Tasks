@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FloatingLabelInput } from "../../../components/FloatingLabelInput";
 import { PasswordStrengthBar } from "../components/PasswordStrengthBar";
 import { register } from "../services/RegisterService";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useToast } from "../../../components/toast/ToastProvider";
 import { extractApiErrorMessage } from "../../../utils/extractApiErrorMessage";
 
@@ -84,7 +84,7 @@ export function RegisterPage() {
 
                     <div className="flex gap-2 justify-center">
                         <p className="text-sm">Já tem conta?</p>
-                        <a href="#" onClick={()=> navigate("/login")} className="text-sm text-purple-600 hover:underline">Acessar</a>
+                        <Link to="/login" className="text-sm text-purple-600 hover:underline">Acessar</Link>
                     </div>
                 </form>
             </div>

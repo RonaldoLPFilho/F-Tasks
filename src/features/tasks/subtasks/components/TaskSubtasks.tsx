@@ -8,65 +8,77 @@ import {
 } from "../services/SubtaskService";
 import { useCollapse } from "../../context/CollapseContext";
 import { ConfirmModal } from "../../../../components/ConfirmModal";
+import { useToast } from "../../../../components/toast/ToastProvider";
+import { extractApiErrorMessage } from "../../../../utils/extractApiErrorMessage";
+import { splitHighlightedText } from "../../utils/highlightSearchText";
 
 interface Props {
     taskId: string;
     subtasks: Subtask[];
     onSubtasksUpdated: (newSubtasks: Subtask[]) => void;
+    readOnly?: boolean;
+    highlightTerms?: string[];
 }
 
-export function TaskSubtasks({ taskId, subtasks, onSubtasksUpdated }: Props) {
+export function TaskSubtasks({
+  taskId,
+  subtasks,
+  onSubtasksUpdated,
+  readOnly = false,
+  highlightTerms = [],
+}: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [newSubtask, setNewSubtask] = useState("");
   const total = subtasks.length;
   const completed = subtasks.filter((s) => s.completed).length;
-  const [subTasksState, setSubtasksState] = useState<Subtask[]>(subtasks);
   const [isSubmitting, setSubmitting] = useState(false);
   const [subtaskToDelete, setSubtaskToDelete] = useState<string | null>(null);
   const { isExpanded } = useCollapse();
+  const { showError, showSuccess } = useToast();
 
     useEffect(() => {
         setIsOpen(isExpanded);
     }, [isExpanded])
 
     const handleAddSubtask = async () => {
+        if (readOnly) return;
         if(!newSubtask.trim()) return;
         try{
             setSubmitting(true);
-            const created = await createSubtask({title: newSubtask, taskId});
-            const updated = [...subTasksState, created];
-            setSubtasksState(updated);
+            const created = await createSubtask({title: newSubtask.trim(), taskId});
+            const updated = [...subtasks, created];
             onSubtasksUpdated(updated);
             setNewSubtask("");
         }catch(err){
-            console.error("Erro ao criar subtarefa", err)
+            showError(extractApiErrorMessage(err, "Não foi possível criar a subtarefa."));
         }finally{
             setSubmitting(false);
         }
     }
 
   const handleCompletion = async (id: string, completed: boolean) => {
+    if (readOnly) return;
     try {
       await toggleSubstaskCompletion(id, completed);
-      const updated = subTasksState.map((s) =>
+      const updated = subtasks.map((s) =>
         s.id === id ? { ...s, completed } : s
       );
-      setSubtasksState(updated);
       onSubtasksUpdated(updated);
     } catch (err) {
-      console.error("Erro ao alterar subtarefa", err);
+      showError(extractApiErrorMessage(err, "Não foi possível atualizar a subtarefa."));
     }
   };
 
   const handleDeleteSubtask = async () => {
+    if (readOnly) return;
     if (!subtaskToDelete) return;
     try {
       await deleteSubtask(subtaskToDelete);
-      const updated = subTasksState.filter((s) => s.id !== subtaskToDelete);
-      setSubtasksState(updated);
+      const updated = subtasks.filter((s) => s.id !== subtaskToDelete);
       onSubtasksUpdated(updated);
+      showSuccess("Subtarefa removida com sucesso.");
     } catch (err) {
-      console.error("Erro ao excluir subtarefa", err);
+      showError(extractApiErrorMessage(err, "Não foi possível remover a subtarefa."));
     } finally {
       setSubtaskToDelete(null);
     }
@@ -94,9 +106,9 @@ export function TaskSubtasks({ taskId, subtasks, onSubtasksUpdated }: Props) {
                         className="flex items-center gap-2 text-sm mt-4"
                       >
                         <div
-                          className="flex items-center gap-2 flex-1 cursor-pointer min-w-0"
+                          className={`flex items-center gap-2 flex-1 min-w-0 ${readOnly ? "" : "cursor-pointer"}`}
                           onClick={() =>
-                            handleCompletion(sub.id, !sub.completed)
+                            !readOnly && handleCompletion(sub.id, !sub.completed)
                           }
                         >
                           <div className="w-5 h-5 flex items-center justify-center rounded-full border-2 border-purple-500 shrink-0">
@@ -111,47 +123,59 @@ export function TaskSubtasks({ taskId, subtasks, onSubtasksUpdated }: Props) {
                                 : "text-gray-800"
                             }
                           >
-                            {sub.title}
+                            {splitHighlightedText(sub.title, highlightTerms).map((part, index) =>
+                              part.highlighted ? (
+                                <mark key={index} className="rounded bg-yellow-200 px-0.5 text-gray-900">
+                                  {part.text}
+                                </mark>
+                              ) : (
+                                <span key={index}>{part.text}</span>
+                              )
+                            )}
                           </span>
                         </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSubtaskToDelete(sub.id);
-                          }}
-                          aria-label={`Excluir subtarefa ${sub.title}`}
-                          className="p-1.5 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 shrink-0"
-                        >
-                          <Trash className="w-4 h-4" />
-                        </button>
+                        {!readOnly && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSubtaskToDelete(sub.id);
+                            }}
+                            aria-label={`Excluir subtarefa ${sub.title}`}
+                            className="p-1.5 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 shrink-0"
+                          >
+                            <Trash className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     ))}
                     
-                    <form
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            handleAddSubtask();
-                        }} 
-                        className="flex items-center gap-2 mt-4">
-                        <input
-                            value={newSubtask}
-                            onChange={(e) => setNewSubtask(e.target.value)}
-                            placeholder="Nova subtarefa..."
-                            className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 "
-                        />
-                        <button 
-                            className="bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-lg px-3"
-                            disabled={!newSubtask.trim() || isSubmitting}
-                            onClick={handleAddSubtask}
-                        >
-                            <Plus className="w-4 h-4"/>
-                        </button>
-                    </form>
+                    {!readOnly && (
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                handleAddSubtask();
+                            }} 
+                            className="flex items-center gap-2 mt-4">
+                            <input
+                                value={newSubtask}
+                                onChange={(e) => setNewSubtask(e.target.value)}
+                                placeholder="Nova subtarefa..."
+                                className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 "
+                            />
+                            <button 
+                                type="submit"
+                                className="bg-purple-500 hover:bg-purple-600 text-white p-2 rounded-lg px-3"
+                                disabled={!newSubtask.trim() || isSubmitting}
+                            >
+                                <Plus className="w-4 h-4"/>
+                            </button>
+                        </form>
+                    )}
                 </div>
             )}
 
       <ConfirmModal
-        isOpen={subtaskToDelete !== null}
+        isOpen={!readOnly && subtaskToDelete !== null}
         onConfirm={handleDeleteSubtask}
         onCancel={() => setSubtaskToDelete(null)}
       />

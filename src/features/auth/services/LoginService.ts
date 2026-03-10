@@ -6,6 +6,5 @@ import api from "../../../services/AxiosInterceptor";
 
 export const login = async (data: LoginRequest): Promise<ApiResponse<LoginResponseDTO>> =>{
     const response = await api.post<ApiResponse<LoginResponseDTO>>(`/auth`, data)
-    console.log("valor response: " + response.data.data);
     return response.data;
 }

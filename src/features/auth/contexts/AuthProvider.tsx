@@ -1,22 +1,34 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AuthContext } from "./AuthContext";
+import {
+    clearAuthSession,
+    readAuthSession,
+    saveAuthSession,
+} from "../storage/authStorage";
 
 export function AuthProvider({children}: {children: React.ReactNode}){
-    const [token, setToken] = useState(localStorage.getItem("token") || "");
-    const [username, setUsername] = useState(localStorage.getItem("username") || "");
+    const [token, setToken] = useState(() => readAuthSession().token);
+    const [username, setUsername] = useState(() => readAuthSession().username);
 
+    useEffect(() => {
+        const handleUnauthorized = () => {
+            clearAuthSession();
+            setToken("");
+            setUsername("");
+        };
+
+        window.addEventListener("tasks:unauthorized", handleUnauthorized);
+        return () => window.removeEventListener("tasks:unauthorized", handleUnauthorized);
+    }, []);
 
     const login = (newToken: string, username: string) => {
-        localStorage.setItem("token", newToken);
-        localStorage.setItem("username", username)
-        console.log("auth provider newToken: " + newToken);
+        saveAuthSession({ token: newToken, username });
         setToken(newToken);
         setUsername(username);
     }
 
     const logout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("username");
+        clearAuthSession();
         setToken("");
         setUsername("");
     } 

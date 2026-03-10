@@ -10,10 +10,11 @@ const CollapseContext = createContext<CollapseContextType | undefined>(undefined
 
 type CollapseProviderProps = {
     children: ReactNode;
+    initialExpanded?: boolean;
 };
 
-export function CollapseProvider({ children }: CollapseProviderProps){
-    const [isExpanded, setExpanded] = useState(false);
+export function CollapseProvider({ children, initialExpanded = false }: CollapseProviderProps){
+    const [isExpanded, setExpanded] = useState(initialExpanded);
 
     const toggleAll = () => {
         setExpanded(prev => !prev);

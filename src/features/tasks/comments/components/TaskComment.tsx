@@ -11,54 +11,66 @@ import {
 import { createComment, deleteComment } from "../services/CommentService";
 import { useCollapse } from "../../context/CollapseContext";
 import { ConfirmModal } from "../../../../components/ConfirmModal";
+import { useToast } from "../../../../components/toast/ToastProvider";
+import { extractApiErrorMessage } from "../../../../utils/extractApiErrorMessage";
+import { splitHighlightedText } from "../../utils/highlightSearchText";
 
 interface Props {
     taskId: string;
     comments : Comment[];
     onCommentsUpdated: (newComments: Comment[]) => void;
+    readOnly?: boolean;
+    highlightTerms?: string[];
 }
 
-export function TaskComments({ taskId, comments, onCommentsUpdated }: Props) {
+export function TaskComments({
+  taskId,
+  comments,
+  onCommentsUpdated,
+  readOnly = false,
+  highlightTerms = [],
+}: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [newComment, setNewComment] = useState("");
-  const [commentsState, setCommentState] = useState<Comment[]>(comments);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
   const { isExpanded } = useCollapse();
+  const { showError, showSuccess } = useToast();
 
     useEffect(() => {
         setIsOpen(isExpanded);
     }, [isExpanded])
 
   const handleCreateComment = async () => {
+    if (readOnly) return;
     if (!newComment.trim()) return;
 
     try {
       setIsSubmitting(true);
       const created = await createComment({
-        description: newComment,
+        description: newComment.trim(),
         taskId,
       });
-      const updated = [...commentsState, created];
-      setCommentState(updated);
+      const updated = [...comments, created];
       onCommentsUpdated(updated);
       setNewComment("");
     } catch (err) {
-      console.error("Erro ao adicionar comentário", err);
+      showError(extractApiErrorMessage(err, "Não foi possível adicionar o comentário."));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDeleteComment = async () => {
+    if (readOnly) return;
     if (!commentToDelete) return;
     try {
       await deleteComment(commentToDelete);
-      const updated = commentsState.filter((c) => c.id !== commentToDelete);
-      setCommentState(updated);
+      const updated = comments.filter((c) => c.id !== commentToDelete);
       onCommentsUpdated(updated);
+      showSuccess("Comentário removido com sucesso.");
     } catch (err) {
-      console.error("Erro ao excluir comentário", err);
+      showError(extractApiErrorMessage(err, "Não foi possível remover o comentário."));
     } finally {
       setCommentToDelete(null);
     }
@@ -82,7 +94,7 @@ export function TaskComments({ taskId, comments, onCommentsUpdated }: Props) {
                 <MessageSquare className="w-4 h-4"/>
                 Comentários 
                 <span className="bg-gray-100 text-gray-800 text-xs font-semibold px-2 py-0.5 rounded-full">
-                    {commentsState.length}
+                    {comments.length}
                 </span>
 
                 {isOpen ? <ChevronUp className="w-4 h-4"/> : <ChevronDown className="w-4 h-4"/>}
@@ -102,46 +114,59 @@ export function TaskComments({ taskId, comments, onCommentsUpdated }: Props) {
                               <CalendarDays className="w-4 h-4 shrink-0" />
                               {formatDate(comment.createdAt)}
                             </div>
-                            <p className="mt-1">{comment.description}</p>
+                            <p className="mt-1">
+                              {splitHighlightedText(comment.description, highlightTerms).map((part, index) =>
+                                part.highlighted ? (
+                                  <mark key={index} className="rounded bg-yellow-200 px-0.5 text-gray-900">
+                                    {part.text}
+                                  </mark>
+                                ) : (
+                                  <span key={index}>{part.text}</span>
+                                )
+                              )}
+                            </p>
                           </div>
-                          <button
-                            onClick={() => setCommentToDelete(comment.id)}
-                            aria-label={`Excluir comentário`}
-                            className="p-1.5 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 shrink-0"
-                          >
-                            <Trash className="w-4 h-4" />
-                          </button>
+                          {!readOnly && (
+                            <button
+                              onClick={() => setCommentToDelete(comment.id)}
+                              aria-label={`Excluir comentário`}
+                              className="p-1.5 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 shrink-0"
+                            >
+                              <Trash className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}
 
-                    <form
-                        onSubmit={(e) => {
-                            e.preventDefault();
-                            handleCreateComment();
-                        }} 
-                        className="flex items-center gap-2 pt-2"
-                    >
-                        <input
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                            placeholder="Adicionar um comentário..."
-                            className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        />
-                        <button
-                            type="submit"
-                            disabled={!newComment.trim() || isSubmitting}
-                            onClick={handleCreateComment}
-                            className="bg-purple-500 hover:bg-purple-600 text-white rounded-lg p-2 px-3 "
+                    {!readOnly && (
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                handleCreateComment();
+                            }} 
+                            className="flex items-center gap-2 pt-2"
                         >
-                            <Send className="w-4 h-4"/>
-                        </button>
-                    </form>
+                            <input
+                                value={newComment}
+                                onChange={(e) => setNewComment(e.target.value)}
+                                placeholder="Adicionar um comentário..."
+                                className="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            />
+                            <button
+                                type="submit"
+                                disabled={!newComment.trim() || isSubmitting}
+                                className="bg-purple-500 hover:bg-purple-600 text-white rounded-lg p-2 px-3 "
+                            >
+                                <Send className="w-4 h-4"/>
+                            </button>
+                        </form>
+                    )}
                 </div>
             )}
 
       <ConfirmModal
-        isOpen={commentToDelete !== null}
+        isOpen={!readOnly && commentToDelete !== null}
         onConfirm={handleDeleteComment}
         onCancel={() => setCommentToDelete(null)}
       />

@@ -1,9 +1,7 @@
 import axios from "axios";
+import { clearAuthSession, readAuthSession } from "../features/auth/storage/authStorage";
 
 const API_BASE = import.meta.env.VITE_API_URL;
-console.log("API_BASE:", API_BASE);
-console.log("VITE_API_URL", import.meta.env.VITE_API_URL);
-
 
 const api = axios.create({
     baseURL: API_BASE,
@@ -11,7 +9,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token");
+    const token = readAuthSession().token;
 
     if(token){
         config.headers.Authorization = `Bearer ${token}`;
@@ -26,13 +24,8 @@ api.interceptors.response.use(
     response => response,
     error => {
         if(error.response && error.response.status === 401){
-            localStorage.removeItem("token");
-            localStorage.removeItem("username");
-            localStorage.removeItem("userToken");
-
-            window.location.href = "/login";
-
-            return Promise.reject(error);
+            clearAuthSession();
+            window.dispatchEvent(new Event("tasks:unauthorized"));
         }   
         return Promise.reject(error);
     }

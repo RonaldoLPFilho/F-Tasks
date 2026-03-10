@@ -1,4 +1,5 @@
 import { Task } from "../types/Task";
+import { TaskSearchResult } from "../types/TaskSearch";
 import { ApiResponse } from "../../../types/ApiResponse";
 import api from "../../../services/AxiosInterceptor";
 
@@ -10,6 +11,22 @@ export interface SectionUpdatePayload {
 export const getAllTasks = async (tabId?: string): Promise<Task[]> => {
   const params = tabId ? { tabId } : {};
   const response = await api.get<ApiResponse<Task[]>>("/tasks", { params });
+  return response.data.data;
+};
+
+export const searchTasks = async (
+  query: string,
+  tabId?: string,
+  limit = 25
+): Promise<TaskSearchResult[]> => {
+  const response = await api.get<ApiResponse<TaskSearchResult[]>>("/tasks/search", {
+    params: {
+      q: query,
+      tabId,
+      limit,
+    },
+  });
+
   return response.data.data;
 };
 

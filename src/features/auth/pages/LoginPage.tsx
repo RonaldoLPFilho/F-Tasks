@@ -1,9 +1,11 @@
 import { useContext, useEffect, useState } from "react";
 import { login } from "../services/LoginService";
 import { AuthContext } from "../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FloatingLabelInput } from "../../../components/FloatingLabelInput";
 import { forgotPassword } from "../../auth/services/ResetPasswordService";
+import { useToast } from "../../../components/toast/ToastProvider";
+import { extractApiErrorMessage } from "../../../utils/extractApiErrorMessage";
 
 export function LoginPage() {
     const [email, setEmail] = useState("");
@@ -11,12 +13,13 @@ export function LoginPage() {
     const [hasEmailError, setHasEmailError] = useState(false);
     const { login: doLogin, isAuthenticated } = useContext(AuthContext);
     const navigate = useNavigate();
+    const { showError, showSuccess } = useToast();
 
     useEffect(() => {
         if (isAuthenticated) {
           navigate("/tasks");
         }
-      }, [isAuthenticated]);
+      }, [isAuthenticated, navigate]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -26,9 +29,7 @@ export function LoginPage() {
             doLogin(response.data.token, response.data.username);
             navigate("/tasks")
         }catch(err){
-            //Todo: adaptar para lidar melhor com erros, implementar sistema de notificacao
-            console.error(err);
-            alert("Poss;ivel credencial inválida")
+            showError(extractApiErrorMessage(err, "Credenciais inválidas."));
         }
     }
 
@@ -38,8 +39,12 @@ export function LoginPage() {
         }
         else{
             setHasEmailError(false);
-            await forgotPassword(email);
-            alert("Email enviado com sucesso!")
+            try {
+                await forgotPassword(email);
+                showSuccess("Email de recuperação enviado com sucesso.");
+            } catch (err) {
+                showError(extractApiErrorMessage(err, "Não foi possível enviar o email de recuperação."));
+            }
         }   
     }
 
@@ -85,7 +90,7 @@ export function LoginPage() {
                     />
 
                     <div className="text-right text-sm">
-                        <a href="#" onClick={handleForgot} className="text-purple-600 hover:underline">Esqueceu a senha?</a>
+                        <button type="button" onClick={handleForgot} className="text-purple-600 hover:underline">Esqueceu a senha?</button>
                     </div>
 
                     <button
@@ -99,7 +104,7 @@ export function LoginPage() {
 
                     <div className="flex gap-2 justify-center">
                         <p className="text-sm">Ainda não tem uma conta?</p>
-                        <a href="#" onClick={()=> navigate("/register")} className="text-sm text-purple-600 hover:underline">Cadastre-se</a>
+                        <Link to="/register" className="text-sm text-purple-600 hover:underline">Cadastre-se</Link>
                     </div>
                 </form>
             </div>
