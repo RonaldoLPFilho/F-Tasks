@@ -4,22 +4,35 @@ import { useTabs } from "../context/TabsContext";
 import { RemoveTabModal } from "./RemoveTabModal";
 import { Tab } from "../types/Tab";
 import { getTabById } from "../services/TabService";
+import { useToast } from "../../../components/toast/ToastProvider";
 
 const MAX_TAB_NAME_LENGTH = 20;
 
 export function TabsBar() {
-  const { tabs, activeTabId, selectTab, createTab, removeTab } = useTabs();
+  const { tabs, activeTabId, selectTab, createTab, renameTab, removeTab } = useTabs();
   const [isCreating, setIsCreating] = useState(false);
   const [newTabName, setNewTabName] = useState("");
   const [tabToRemove, setTabToRemove] = useState<Tab | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
+  const [editingTabId, setEditingTabId] = useState<string | null>(null);
+  const [editingTabName, setEditingTabName] = useState("");
+  const [isRenaming, setIsRenaming] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const renameInputRef = useRef<HTMLInputElement>(null);
+  const { showError } = useToast();
 
   useEffect(() => {
     if (isCreating) {
       inputRef.current?.focus();
     }
   }, [isCreating]);
+
+  useEffect(() => {
+    if (editingTabId) {
+      renameInputRef.current?.focus();
+      renameInputRef.current?.select();
+    }
+  }, [editingTabId]);
 
   const handleCreateClick = () => {
     setIsCreating(true);
@@ -77,6 +90,54 @@ export function TabsBar() {
     setTabToRemove(null);
   };
 
+  const handleStartRename = (tab: Tab) => {
+    setEditingTabId(tab.id);
+    setEditingTabName(tab.name);
+    setCreateError(null);
+  };
+
+  const handleRenameCancel = () => {
+    setEditingTabId(null);
+    setEditingTabName("");
+  };
+
+  const handleRenameConfirm = async () => {
+    if (!editingTabId || isRenaming) return;
+
+    const name = editingTabName.trim();
+    const currentTab = tabs.find((tab) => tab.id === editingTabId);
+
+    if (!name) {
+      setCreateError("Digite um nome para a aba.");
+      return;
+    }
+
+    if (name.length > MAX_TAB_NAME_LENGTH) {
+      setCreateError(`O nome da aba deve ter no máximo ${MAX_TAB_NAME_LENGTH} caracteres.`);
+      return;
+    }
+
+    if (currentTab && currentTab.name === name) {
+      handleRenameCancel();
+      return;
+    }
+
+    setIsRenaming(true);
+    try {
+      const updated = await renameTab(editingTabId, name);
+      if (!updated) {
+        showError("Não foi possível renomear a aba.");
+        return;
+      }
+
+      setEditingTabId(null);
+      setEditingTabName("");
+      setCreateError(null);
+    } finally {
+      setIsRenaming(false);
+    }
+  };
+
   return (
     <>
       <div className="bg-gray-100 border-b border-gray-200 flex justify-center">
@@ -95,10 +156,39 @@ export function TabsBar() {
                   }
                 `}
                 onClick={() => selectTab(tab.id)}
+                onDoubleClick={() => handleStartRename(tab)}
               >
-                <span className="truncate max-w-[120px] text-sm font-medium">
-                  {tab.name}
-                </span>
+                {editingTabId === tab.id ? (
+                  <input
+                    ref={renameInputRef}
+                    type="text"
+                    value={editingTabName}
+                    maxLength={MAX_TAB_NAME_LENGTH}
+                    onClick={(e) => e.stopPropagation()}
+                    onDoubleClick={(e) => e.stopPropagation()}
+                    onChange={(e) => {
+                      setEditingTabName(e.target.value);
+                      setCreateError(null);
+                    }}
+                    onBlur={() => {
+                      void handleRenameConfirm();
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        void handleRenameConfirm();
+                      }
+                      if (e.key === "Escape") {
+                        handleRenameCancel();
+                      }
+                    }}
+                    className="w-32 rounded border border-gray-300 px-2 py-1 text-sm outline-none focus:ring-2 focus:ring-purple-500"
+                    disabled={isRenaming}
+                  />
+                ) : (
+                  <span className="truncate max-w-[120px] text-sm font-medium">
+                    {tab.name}
+                  </span>
+                )}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();

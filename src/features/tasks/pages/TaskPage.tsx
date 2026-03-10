@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import { TaskForm } from "../components/TaskForm";
 import { TaskSearchPanel } from "../components/TaskSearchPanel";
 import { TaskSectionsBoard } from "../components/TaskSectionsBoard";
-import { DailyModal } from "../../daily/components/DailyModal";
 import { CollapseProvider } from "../context/CollapseContext";
 import { TabsProvider, useTabs } from "../../tabs/context/TabsContext";
 import { TabsBar } from "../../tabs/components/TabsBar";
@@ -38,7 +37,6 @@ export function TaskPage() {
 function TaskPageContent() {
     const { activeTabId } = useTabs();
     const [sections, setSections] = useState<TaskSection[]>([]);
-    const [isDailyModalOpen, setIsDailyModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { showError } = useToast();
 
@@ -72,19 +70,6 @@ function TaskPageContent() {
 
     return (
         <div className="max-w-4xl mx-auto p-4">
-            {/* <div className="absolute right">
-        <button
-          onClick={() => setIsDailyModalOpen(true)}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 font-semibold"
-        >
-          Iniciar Daily
-        </button>
-        <DailyModal
-          isOpen={isDailyModalOpen}
-          onClose={() => setIsDailyModalOpen(false)}
-          language="es-AR"
-        />
-      </div> */}
             <TaskSearchPanel tabId={activeTabId} />
             <div className="mt-5" />
             <TaskForm tabId={activeTabId} onTaskCreated={loadSections} />

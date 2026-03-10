@@ -10,6 +10,7 @@ import { Tab } from "../types/Tab";
 import {
   getTabs,
   createTab as createTabApi,
+  updateTab as updateTabApi,
   deleteTab as deleteTabApi,
 } from "../services/TabService";
 import { removeTabFromState, resolveActiveTabId } from "./tabState";
@@ -22,6 +23,7 @@ interface TabsContextValue {
   loadTabs: () => Promise<void>;
   selectTab: (tabId: string) => void;
   createTab: (name: string) => Promise<Tab | null>;
+  renameTab: (tabId: string, name: string) => Promise<Tab | null>;
   removeTab: (tabId: string, password?: string) => Promise<boolean>;
 }
 
@@ -72,6 +74,18 @@ export function TabsProvider({ children }: TabsProviderProps) {
     }
   }, []);
 
+  const renameTab = useCallback(async (tabId: string, name: string): Promise<Tab | null> => {
+    try {
+      const updatedTab = await updateTabApi(tabId, { name: name.trim() });
+      setTabs((prev) =>
+        prev.map((tab) => (tab.id === tabId ? { ...tab, ...updatedTab } : tab))
+      );
+      return updatedTab;
+    } catch {
+      return null;
+    }
+  }, []);
+
   const removeTab = useCallback(
     async (tabId: string, password?: string): Promise<boolean> => {
       try {
@@ -97,6 +111,7 @@ export function TabsProvider({ children }: TabsProviderProps) {
     loadTabs,
     selectTab,
     createTab,
+    renameTab,
     removeTab,
   };
 
