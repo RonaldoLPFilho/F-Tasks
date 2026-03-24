@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { Plus, X } from "lucide-react";
+import { Archive, Plus, X } from "lucide-react";
 import { useTabs } from "../context/TabsContext";
+import { ConfirmModal } from "../../../components/ConfirmModal";
 import { RemoveTabModal } from "./RemoveTabModal";
 import { Tab } from "../types/Tab";
 import { getTabById } from "../services/TabService";
@@ -9,17 +10,18 @@ import { useToast } from "../../../components/toast/ToastProvider";
 const MAX_TAB_NAME_LENGTH = 20;
 
 export function TabsBar() {
-  const { tabs, activeTabId, selectTab, createTab, renameTab, removeTab } = useTabs();
+  const { tabs, activeTabId, selectTab, createTab, renameTab, archiveTab, removeTab } = useTabs();
   const [isCreating, setIsCreating] = useState(false);
   const [newTabName, setNewTabName] = useState("");
   const [tabToRemove, setTabToRemove] = useState<Tab | null>(null);
+  const [tabToArchive, setTabToArchive] = useState<Tab | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [editingTabId, setEditingTabId] = useState<string | null>(null);
   const [editingTabName, setEditingTabName] = useState("");
   const [isRenaming, setIsRenaming] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
-  const { showError } = useToast();
+  const { showError, showSuccess } = useToast();
 
   useEffect(() => {
     if (isCreating) {
@@ -88,6 +90,19 @@ export function TabsBar() {
 
   const handleRemoveCancel = () => {
     setTabToRemove(null);
+  };
+
+  const handleArchive = async () => {
+    if (!tabToArchive) return;
+
+    const archived = await archiveTab(tabToArchive.id);
+    if (!archived) {
+      showError("Não foi possível arquivar a aba.");
+      return;
+    }
+
+    showSuccess("Aba arquivada com sucesso.");
+    setTabToArchive(null);
   };
 
   const handleStartRename = (tab: Tab) => {
@@ -192,6 +207,16 @@ export function TabsBar() {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
+                    setTabToArchive(tab);
+                  }}
+                  aria-label={`Arquivar aba ${tab.name}`}
+                  className="p-0.5 rounded hover:bg-gray-300/80 text-gray-500 hover:text-amber-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Archive className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
                     handleRemoveClick(tab);
                   }}
                   aria-label={`Remover aba ${tab.name}`}
@@ -263,6 +288,18 @@ export function TabsBar() {
           onCancel={handleRemoveCancel}
         />
       )}
+
+      <ConfirmModal
+        isOpen={tabToArchive !== null}
+        onConfirm={() => void handleArchive()}
+        onCancel={() => setTabToArchive(null)}
+        title="Arquivar aba?"
+        message={
+          tabToArchive
+            ? `A aba "${tabToArchive.name}" sairá da área principal e ficará disponível apenas no histórico arquivado.`
+            : undefined
+        }
+      />
     </>
   );
 }

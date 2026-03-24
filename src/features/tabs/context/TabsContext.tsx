@@ -11,6 +11,7 @@ import {
   getTabs,
   createTab as createTabApi,
   updateTab as updateTabApi,
+  archiveTab as archiveTabApi,
   deleteTab as deleteTabApi,
 } from "../services/TabService";
 import { removeTabFromState, resolveActiveTabId } from "./tabState";
@@ -24,6 +25,7 @@ interface TabsContextValue {
   selectTab: (tabId: string) => void;
   createTab: (name: string) => Promise<Tab | null>;
   renameTab: (tabId: string, name: string) => Promise<Tab | null>;
+  archiveTab: (tabId: string) => Promise<boolean>;
   removeTab: (tabId: string, password?: string) => Promise<boolean>;
 }
 
@@ -86,6 +88,23 @@ export function TabsProvider({ children }: TabsProviderProps) {
     }
   }, []);
 
+  const archiveTab = useCallback(
+    async (tabId: string): Promise<boolean> => {
+      try {
+        await archiveTabApi(tabId);
+        setTabs((prev) => {
+          const nextState = removeTabFromState(prev, tabId, activeTabId);
+          setActiveTabId(nextState.activeTabId);
+          return nextState.tabs;
+        });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [activeTabId]
+  );
+
   const removeTab = useCallback(
     async (tabId: string, password?: string): Promise<boolean> => {
       try {
@@ -112,6 +131,7 @@ export function TabsProvider({ children }: TabsProviderProps) {
     selectTab,
     createTab,
     renameTab,
+    archiveTab,
     removeTab,
   };
 

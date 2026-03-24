@@ -12,6 +12,8 @@ export interface Task {
     createdAt: string;
     finishedAt?: string;
     jiraId?: string;
+    active?: boolean;
+    archived?: boolean;
     category?: Category | null;
     subtasks: Subtask[];
     comments: Comment[];

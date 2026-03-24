@@ -17,11 +17,13 @@ import { useToast } from "../../../components/toast/ToastProvider";
 import { extractApiErrorMessage } from "../../../utils/extractApiErrorMessage";
 import { useCollapse } from "../context/CollapseContext";
 import {
+  archiveSection,
   createSection,
   deleteSection,
   updateSection,
 } from "../services/SectionService";
 import {
+  archiveTask,
   deleteTask,
   reorderTasks,
   toggleTaskCompletion,
@@ -72,6 +74,8 @@ export function TaskSectionsBoard({
 }: TaskSectionsBoardProps) {
   const [sectionToDelete, setSectionToDelete] = useState<TaskSection | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<string | null>(null);
+  const [sectionToArchive, setSectionToArchive] = useState<TaskSection | null>(null);
+  const [taskToArchive, setTaskToArchive] = useState<Task | null>(null);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const { toggleAll, isExpanded } = useCollapse();
@@ -184,6 +188,27 @@ export function TaskSectionsBoard({
     }
   };
 
+  const handleArchiveTask = async () => {
+    if (!taskToArchive) {
+      return;
+    }
+
+    try {
+      await archiveTask(taskToArchive.id);
+      setSections((previous) =>
+        previous.map((section) => ({
+          ...section,
+          tasks: section.tasks.filter((currentTask) => currentTask.id !== taskToArchive.id),
+        }))
+      );
+      showSuccess("Task arquivada com sucesso.");
+    } catch (error) {
+      showError(extractApiErrorMessage(error, "Não foi possível arquivar a task."));
+    } finally {
+      setTaskToArchive(null);
+    }
+  };
+
   const handleCreateSection = async (name: string) => {
     if (!tabId) {
       return "Selecione uma aba para criar sections.";
@@ -234,6 +259,30 @@ export function TaskSectionsBoard({
       console.error("Erro ao remover a section", error);
       showError(extractApiErrorMessage(error, "Não foi possível remover a section."));
     }
+  };
+
+  const handleArchiveSection = async () => {
+    if (!tabId || !sectionToArchive) {
+      return;
+    }
+
+    try {
+      await archiveSection(tabId, sectionToArchive.id);
+      setSections((previous) => previous.filter((currentSection) => currentSection.id !== sectionToArchive.id));
+      showSuccess("Section arquivada com sucesso.");
+    } catch (error) {
+      showError(extractApiErrorMessage(error, "Não foi possível arquivar a section."));
+    } finally {
+      setSectionToArchive(null);
+    }
+  };
+
+  const requestArchiveSection = (section: TaskSection) => {
+    if (!tabId) {
+      return;
+    }
+
+    setSectionToArchive(section);
   };
 
   const handleDragStart = ({ active }: DragStartEvent) => {
@@ -432,8 +481,10 @@ export function TaskSectionsBoard({
                 }))
               }
               onRename={handleRenameSection}
+              onArchive={requestArchiveSection}
               onDelete={setSectionToDelete}
               onToggleComplete={handleToggleComplete}
+              onArchiveTask={setTaskToArchive}
               onDeleteTask={setTaskToDelete}
               onUpdateTask={updateTaskInSections}
             />
@@ -445,6 +496,7 @@ export function TaskSectionsBoard({
             <TaskDragPreview
               task={activeTask}
               onToggleComplete={() => undefined}
+              onArchive={() => undefined}
               onDelete={() => undefined}
               onUpdateTask={() => undefined}
             />
@@ -474,6 +526,30 @@ export function TaskSectionsBoard({
         isOpen={taskToDelete !== null}
         onConfirm={handleDeleteTask}
         onCancel={() => setTaskToDelete(null)}
+      />
+
+      <ConfirmModal
+        isOpen={sectionToArchive !== null}
+        onConfirm={() => void handleArchiveSection()}
+        onCancel={() => setSectionToArchive(null)}
+        title="Arquivar section?"
+        message={
+          sectionToArchive
+            ? `A section "${sectionToArchive.name}" e as tasks dela sairão da área principal e irão para o histórico arquivado.`
+            : undefined
+        }
+      />
+
+      <ConfirmModal
+        isOpen={taskToArchive !== null}
+        onConfirm={() => void handleArchiveTask()}
+        onCancel={() => setTaskToArchive(null)}
+        title="Arquivar task?"
+        message={
+          taskToArchive
+            ? `A task "${taskToArchive.title}" sairá da área principal e ficará disponível apenas no histórico arquivado.`
+            : undefined
+        }
       />
     </div>
   );

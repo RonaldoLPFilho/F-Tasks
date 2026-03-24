@@ -36,6 +36,13 @@ export const deleteSection = async (
   await api.delete(`/tabs/${tabId}/sections/${sectionId}`);
 };
 
+export const archiveSection = async (
+  tabId: string,
+  sectionId: string
+): Promise<void> => {
+  await api.patch(`/tabs/${tabId}/sections/${sectionId}/archive`);
+};
+
 export const reorderSections = async (
   tabId: string,
   orderedIds: string[]

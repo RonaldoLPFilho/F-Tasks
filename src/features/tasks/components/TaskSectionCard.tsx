@@ -1,6 +1,7 @@
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import {
+  Archive,
   Check,
   ChevronDown,
   ChevronRight,
@@ -19,8 +20,10 @@ interface TaskSectionCardProps {
   collapsed: boolean;
   onToggleCollapse: () => void;
   onRename: (sectionId: string, name: string) => Promise<string | null>;
+  onArchive: (section: TaskSection) => void;
   onDelete: (section: TaskSection) => void;
   onToggleComplete: (task: Task) => void;
+  onArchiveTask: (task: Task) => void;
   onDeleteTask: (taskId: string) => void;
   onUpdateTask: (updatedTask: Task) => void;
 }
@@ -34,8 +37,10 @@ export function TaskSectionCard({
   collapsed,
   onToggleCollapse,
   onRename,
+  onArchive,
   onDelete,
   onToggleComplete,
+  onArchiveTask,
   onDeleteTask,
   onUpdateTask,
 }: TaskSectionCardProps) {
@@ -139,6 +144,14 @@ export function TaskSectionCard({
           <div className="flex items-center gap-2">
             <button
               type="button"
+              onClick={() => onArchive(section)}
+              aria-label={`Arquivar section ${section.name}`}
+              className="text-gray-500 transition hover:text-amber-600"
+            >
+              <Archive className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
               onClick={() => setIsEditing(true)}
               aria-label={`Editar section ${section.name}`}
               className="text-gray-500 transition hover:text-purple-600"
@@ -174,6 +187,7 @@ export function TaskSectionCard({
                     key={task.id}
                     task={task}
                     onToggleComplete={() => onToggleComplete(task)}
+                    onArchive={() => onArchiveTask(task)}
                     onDelete={() => onDeleteTask(task.id)}
                     onUpdateTask={onUpdateTask}
                   />

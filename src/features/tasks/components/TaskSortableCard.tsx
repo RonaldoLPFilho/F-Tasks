@@ -6,6 +6,7 @@ import { TaskCard } from "./TaskCard";
 
 interface TaskCardActions {
   onToggleComplete: () => void;
+  onArchive?: () => void;
   onDelete: () => void;
   onUpdateTask: (updatedTask: Task) => void;
 }
@@ -21,6 +22,7 @@ function TaskCardShell({
   setActivatorNodeRef,
   isDragging,
   onToggleComplete,
+  onArchive,
   onDelete,
   onUpdateTask,
 }: TaskSortableCardProps & {
@@ -47,6 +49,7 @@ function TaskCardShell({
         <TaskCard
           task={task}
           onToggleComplete={onToggleComplete}
+          onArchive={onArchive}
           onDelete={onDelete}
           onUpdateTask={onUpdateTask}
         />
@@ -58,6 +61,7 @@ function TaskCardShell({
 export function TaskSortableCard({
   task,
   onToggleComplete,
+  onArchive,
   onDelete,
   onUpdateTask,
 }: TaskSortableCardProps) {
@@ -87,6 +91,7 @@ export function TaskSortableCard({
         setActivatorNodeRef={setActivatorNodeRef}
         isDragging={isDragging}
         onToggleComplete={onToggleComplete}
+        onArchive={onArchive}
         onDelete={onDelete}
         onUpdateTask={onUpdateTask}
       />
@@ -97,6 +102,7 @@ export function TaskSortableCard({
 export function TaskDragPreview({
   task,
   onToggleComplete,
+  onArchive,
   onDelete,
   onUpdateTask,
 }: TaskSortableCardProps) {
@@ -105,6 +111,7 @@ export function TaskDragPreview({
       <TaskCardShell
         task={task}
         onToggleComplete={onToggleComplete}
+        onArchive={onArchive}
         onDelete={onDelete}
         onUpdateTask={onUpdateTask}
       />

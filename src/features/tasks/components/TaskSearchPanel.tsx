@@ -1,27 +1,43 @@
-import { Search, X } from "lucide-react";
+import { Archive, FolderArchive, RotateCcw, Search, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { ConfirmModal } from "../../../components/ConfirmModal";
 import { useToast } from "../../../components/toast/ToastProvider";
 import { extractApiErrorMessage } from "../../../utils/extractApiErrorMessage";
 import { CollapseProvider } from "../context/CollapseContext";
-import { searchTasks } from "../services/TaskService";
+import { searchTasks, unarchiveTask } from "../services/TaskService";
 import { TaskSearchResult } from "../types/TaskSearch";
 import { splitHighlightedText } from "../utils/highlightSearchText";
 import { TaskCard } from "./TaskCard";
 
 interface TaskSearchPanelProps {
     tabId: string | null;
+    scope?: "active" | "archived" | "all";
+    placeholder?: string;
+    helperMessage?: string;
+    emptyMessage?: string;
+    loadingMessage?: string;
+    modalDescription?: string;
 }
 
 const MIN_QUERY_LENGTH = 2;
 const SEARCH_DEBOUNCE_MS = 300;
 
-export function TaskSearchPanel({ tabId }: TaskSearchPanelProps) {
+export function TaskSearchPanel({
+    tabId,
+    scope = "active",
+    placeholder = "Buscar por título, descrição, Jira ID, ID, comentários ou subtarefas...",
+    helperMessage = `Digite pelo menos ${MIN_QUERY_LENGTH} caracteres para buscar.`,
+    emptyMessage = "Nenhuma task encontrada para essa busca.",
+    loadingMessage = "Buscando tasks...",
+    modalDescription = "Visualizando a task original correspondente ao resultado da busca.",
+}: TaskSearchPanelProps) {
     const [query, setQuery] = useState("");
     const [results, setResults] = useState<TaskSearchResult[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [selectedResult, setSelectedResult] =
         useState<TaskSearchResult | null>(null);
-    const { showError } = useToast();
+    const [isConfirmingUnarchive, setIsConfirmingUnarchive] = useState(false);
+    const { showError, showSuccess } = useToast();
 
     useEffect(() => {
         if (query.trim().length < MIN_QUERY_LENGTH) {
@@ -33,7 +49,7 @@ export function TaskSearchPanel({ tabId }: TaskSearchPanelProps) {
         const timer = window.setTimeout(async () => {
             setIsSearching(true);
             try {
-                const data = await searchTasks(query, tabId ?? undefined);
+                const data = await searchTasks(query, tabId ?? undefined, scope);
                 setResults(data);
             } catch (error) {
                 showError(
@@ -49,7 +65,7 @@ export function TaskSearchPanel({ tabId }: TaskSearchPanelProps) {
         }, SEARCH_DEBOUNCE_MS);
 
         return () => window.clearTimeout(timer);
-    }, [query, showError, tabId]);
+    }, [query, scope, showError, tabId]);
 
     const selectedTask = selectedResult?.task ?? null;
     const selectedHighlightTerms = selectedResult
@@ -60,6 +76,30 @@ export function TaskSearchPanel({ tabId }: TaskSearchPanelProps) {
           )
         : [];
 
+    const handleConfirmUnarchive = async () => {
+        if (!selectedResult) {
+            return;
+        }
+
+        try {
+            await unarchiveTask(selectedResult.task.id);
+            setResults((previous) =>
+                previous.filter((result) => result.task.id !== selectedResult.task.id),
+            );
+            setSelectedResult(null);
+            showSuccess("Task desarquivada com sucesso.");
+        } catch (error) {
+            showError(
+                extractApiErrorMessage(
+                    error,
+                    "Não foi possível desarquivar a task.",
+                ),
+            );
+        } finally {
+            setIsConfirmingUnarchive(false);
+        }
+    };
+
     return (
         <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-3 rounded-xl border border-gray-200 px-4 py-3">
@@ -67,21 +107,17 @@ export function TaskSearchPanel({ tabId }: TaskSearchPanelProps) {
                 <input
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder="Buscar por título, descrição, Jira ID, ID, comentários ou subtarefas..."
+                    placeholder={placeholder}
                     className="w-full text-sm outline-none"
                 />
             </div>
 
             {query.trim().length < MIN_QUERY_LENGTH ? (
-                <p className="pt-3 text-sm text-gray-500">
-                    Digite pelo menos {MIN_QUERY_LENGTH} caracteres para buscar.
-                </p>
+                <p className="pt-3 text-sm text-gray-500">{helperMessage}</p>
             ) : isSearching ? (
-                <p className="pt-3 text-sm text-gray-500">Buscando tasks...</p>
+                <p className="pt-3 text-sm text-gray-500">{loadingMessage}</p>
             ) : results.length === 0 ? (
-                <p className="pt-3 text-sm text-gray-500">
-                    Nenhuma task encontrada para essa busca.
-                </p>
+                <p className="pt-3 text-sm text-gray-500">{emptyMessage}</p>
             ) : (
                 <div className="mt-4 space-y-3">
                     <p className="text-sm font-medium text-gray-700">
@@ -108,6 +144,26 @@ export function TaskSearchPanel({ tabId }: TaskSearchPanelProps) {
                                         {result.tabName ?? "Sem aba"} /{" "}
                                         {result.sectionName ?? "Sem section"}
                                     </p>
+                                    <div className="mt-2 flex flex-wrap gap-2">
+                                        {result.tabArchived ? (
+                                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-1 text-[11px] font-medium text-amber-700">
+                                                <FolderArchive className="h-3 w-3" />
+                                                Aba arquivada
+                                            </span>
+                                        ) : null}
+                                        {result.sectionArchived ? (
+                                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1 text-[11px] font-medium text-slate-700">
+                                                <Archive className="h-3 w-3" />
+                                                Section arquivada
+                                            </span>
+                                        ) : null}
+                                        {result.task.archived ? (
+                                            <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-1 text-[11px] font-medium text-purple-700">
+                                                <Archive className="h-3 w-3" />
+                                                Task arquivada
+                                            </span>
+                                        ) : null}
+                                    </div>
                                 </div>
                                 <span className="rounded-full bg-purple-100 px-2 py-1 text-xs font-medium text-purple-700">
                                     score {result.score}
@@ -167,10 +223,21 @@ export function TaskSearchPanel({ tabId }: TaskSearchPanelProps) {
                         </button>
 
                         <div className="pr-12">
-                            <p className="mb-4 text-sm font-medium text-gray-500">
-                                Visualizando a task original correspondente ao
-                                resultado da busca.
-                            </p>
+                            <div className="mb-4 flex items-start justify-between gap-4">
+                                <p className="text-sm font-medium text-gray-500">
+                                    {modalDescription}
+                                </p>
+                                {selectedTask.archived ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsConfirmingUnarchive(true)}
+                                        className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700"
+                                    >
+                                        <RotateCcw className="h-4 w-4" />
+                                        Desarquivar
+                                    </button>
+                                ) : null}
+                            </div>
                             <CollapseProvider initialExpanded>
                                 <TaskCard
                                     task={selectedTask}
@@ -194,6 +261,18 @@ export function TaskSearchPanel({ tabId }: TaskSearchPanelProps) {
                     </div>
                 </div>
             ) : null}
+
+            <ConfirmModal
+                isOpen={isConfirmingUnarchive}
+                onConfirm={() => void handleConfirmUnarchive()}
+                onCancel={() => setIsConfirmingUnarchive(false)}
+                title="Desarquivar task?"
+                message={
+                    selectedTask
+                        ? `A task "${selectedTask.title}" voltará a aparecer na área principal.`
+                        : undefined
+                }
+            />
         </section>
     );
 }

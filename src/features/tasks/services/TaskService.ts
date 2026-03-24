@@ -17,12 +17,14 @@ export const getAllTasks = async (tabId?: string): Promise<Task[]> => {
 export const searchTasks = async (
   query: string,
   tabId?: string,
+  scope: "active" | "archived" | "all" = "active",
   limit = 25
 ): Promise<TaskSearchResult[]> => {
   const response = await api.get<ApiResponse<TaskSearchResult[]>>("/tasks/search", {
     params: {
       q: query,
       tabId,
+      scope,
       limit,
     },
   });
@@ -51,6 +53,14 @@ export const toggleTaskCompletion = async (
 
 export const deleteTask = async (id: string): Promise<void> => {
   await api.delete(`/tasks/${id}`);
+};
+
+export const archiveTask = async (id: string): Promise<void> => {
+  await api.patch(`/tasks/archive/${id}`);
+};
+
+export const unarchiveTask = async (id: string): Promise<void> => {
+  await api.patch(`/tasks/unarchive/${id}`);
 };
 
 export const updateTask = async (

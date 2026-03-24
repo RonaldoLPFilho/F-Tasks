@@ -10,7 +10,9 @@ export interface TaskSearchMatch {
 export interface TaskSearchResult {
   task: Task;
   tabName?: string | null;
+  tabArchived?: boolean;
   sectionName?: string | null;
+  sectionArchived?: boolean;
   score: number;
   matches: TaskSearchMatch[];
 }

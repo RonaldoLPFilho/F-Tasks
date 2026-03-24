@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  Archive,
   CalendarDays,
   Check,
   CheckCircle,
@@ -20,6 +21,7 @@ import { splitHighlightedText } from "../utils/highlightSearchText";
 interface TaskCardProps {
   task: Task;
   onToggleComplete: () => void;
+  onArchive?: () => void;
   onDelete: () => void;
   onUpdateTask: (updatedTask: Task) => void;
   readOnly?: boolean;
@@ -29,6 +31,7 @@ interface TaskCardProps {
 export function TaskCard({
   task,
   onToggleComplete,
+  onArchive,
   onDelete,
   onUpdateTask,
   readOnly = false,
@@ -196,6 +199,15 @@ export function TaskCard({
 
         {!isEditing && !readOnly && (
           <div className="flex gap-2 shrink-0">
+            {onArchive ? (
+              <button
+                onClick={onArchive}
+                aria-label="Arquivar"
+                className="text-gray-500 hover:text-amber-600"
+              >
+                <Archive className="w-4 h-4" />
+              </button>
+            ) : null}
             <button
               onClick={handleStartEdit}
               aria-label="Editar"
