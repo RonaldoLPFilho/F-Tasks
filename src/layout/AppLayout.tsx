@@ -5,7 +5,7 @@ import { WidgetMediaProvider } from "../features/widget/context/WidgetMediaProvi
 export function AppLayout(){
     return (
         <WidgetMediaProvider>
-            <div className="relative">
+            <div className="relative min-h-screen w-full bg-gray-50">
                 <Outlet />
                 <ProductivityWidget />
             </div>

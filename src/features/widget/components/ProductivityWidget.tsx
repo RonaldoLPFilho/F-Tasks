@@ -25,7 +25,7 @@ export function ProductivityWidget() {
 
   if (isMinimized) {
     return (
-      <div className="fixed bottom-6 left-6 z-50">
+      <div className="fixed bottom-4 left-4 z-50 sm:bottom-6 sm:left-6">
         <PomodoroTimer showUI={false} />
         <button
           type="button"
@@ -41,7 +41,7 @@ export function ProductivityWidget() {
   }
 
   return (
-    <div className="fixed bottom-6 left-6 z-50 w-[360px] rounded-3xl border border-white/60 bg-white/95 p-4 shadow-2xl backdrop-blur">
+    <div className="fixed bottom-4 left-4 right-4 z-50 w-auto rounded-3xl border border-white/60 bg-white/95 p-4 shadow-2xl backdrop-blur sm:bottom-6 sm:left-6 sm:right-auto sm:w-[360px]">
       <div className="mb-4 flex items-center justify-between rounded-2xl border border-gray-100 bg-gray-50/80 px-3 py-2">
         <button
           type="button"

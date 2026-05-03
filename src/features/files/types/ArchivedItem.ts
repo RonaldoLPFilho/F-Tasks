@@ -22,3 +22,13 @@ export interface ArchivedSearchResult {
   score: number;
   matches: TaskSearchMatch[];
 }
+
+export interface ArchivedItemsPage {
+  content: ArchivedSearchResult[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+}

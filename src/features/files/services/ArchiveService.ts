@@ -1,15 +1,22 @@
 import api from "../../../services/AxiosInterceptor";
 import { ApiResponse } from "../../../types/ApiResponse";
-import { ArchivedSearchResult } from "../types/ArchivedItem";
+import { ArchivedItemsPage } from "../types/ArchivedItem";
 
-export const searchArchivedItems = async (
-  query: string,
-  limit = 30
-): Promise<ArchivedSearchResult[]> => {
-  const response = await api.get<ApiResponse<ArchivedSearchResult[]>>("/archive/search", {
+export const getArchivedItems = async ({
+  query,
+  page = 0,
+  size = 10,
+}: {
+  query?: string;
+  page?: number;
+  size?: number;
+}): Promise<ArchivedItemsPage> => {
+  const trimmedQuery = query?.trim() ?? "";
+  const response = await api.get<ApiResponse<ArchivedItemsPage>>("/archive/search", {
     params: {
-      q: query,
-      limit,
+      page,
+      size,
+      ...(trimmedQuery.length >= 2 ? { q: trimmedQuery } : {}),
     },
   });
 

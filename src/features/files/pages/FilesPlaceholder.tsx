@@ -2,12 +2,19 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Archive,
   ArrowRightLeft,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Download,
   FileArchive,
   FileText,
+  FileUp,
   FolderArchive,
-  KeyRound,
   RotateCcw,
   Search,
+  Trash2,
+  Upload,
+  Vault,
   Wrench,
   X,
 } from "lucide-react";
@@ -22,14 +29,45 @@ import { TaskCard } from "../../tasks/components/TaskCard";
 import { getTabs } from "../../tabs/services/TabService";
 import { Tab } from "../../tabs/types/Tab";
 import {
+  getArchivedItems,
   restoreArchivedSection,
   restoreArchivedTab,
   restoreArchivedTask,
-  searchArchivedItems,
 } from "../services/ArchiveService";
-import { ArchivedSearchResult } from "../types/ArchivedItem";
+import {
+  deleteStoredFile,
+  downloadStoredFile,
+  getStoredFiles,
+  uploadStoredFile,
+} from "../services/FileService";
+import { ArchivedItemsPage, ArchivedSearchResult } from "../types/ArchivedItem";
+import { StoredFile, StoredFilesPage } from "../types/StoredFile";
+import { VaultContent } from "../../vault/components/VaultContent";
 
 type FilesSection = "archived" | "files" | "keyValue" | "howTo";
+
+const ARCHIVED_PAGE_SIZE = 10;
+const FILES_PAGE_SIZE = 10;
+
+const emptyArchivedPage: ArchivedItemsPage = {
+  content: [],
+  page: 0,
+  size: ARCHIVED_PAGE_SIZE,
+  totalElements: 0,
+  totalPages: 0,
+  first: true,
+  last: true,
+};
+
+const emptyStoredFilesPage: StoredFilesPage = {
+  content: [],
+  page: 0,
+  size: FILES_PAGE_SIZE,
+  totalElements: 0,
+  totalPages: 0,
+  first: true,
+  last: true,
+};
 
 const menuItems: Array<{
   id: FilesSection;
@@ -39,7 +77,7 @@ const menuItems: Array<{
 }> = [
   { id: "archived", title: "Arquivados", subtitle: "Tabs, sections e tasks", icon: Archive },
   { id: "files", title: "Arquivos", subtitle: "Anexos e documentos", icon: FileArchive },
-  { id: "keyValue", title: "Chave e Valor", subtitle: "Credenciais e dados", icon: KeyRound },
+  { id: "keyValue", title: "Cofre", subtitle: "Credenciais e dados", icon: Vault },
   { id: "howTo", title: "How To Do", subtitle: "Tutoriais e guias", icon: FileText },
 ];
 
@@ -52,6 +90,287 @@ function DevelopmentPlaceholder({ title, subtitle }: { title: string; subtitle: 
       <h2 className="mt-4 text-2xl font-bold text-gray-900">{title}</h2>
       <p className="mt-2 text-sm text-gray-500">{subtitle}</p>
       <p className="mt-6 text-sm font-medium text-amber-700">Em desenvolvimento</p>
+    </div>
+  );
+}
+
+function formatBytes(sizeBytes: number) {
+  if (sizeBytes === 0) return "0 B";
+
+  const units = ["B", "KB", "MB", "GB"];
+  const exponent = Math.min(Math.floor(Math.log(sizeBytes) / Math.log(1024)), units.length - 1);
+  const value = sizeBytes / Math.pow(1024, exponent);
+
+  return `${value.toFixed(value >= 10 || exponent === 0 ? 0 : 1)} ${units[exponent]}`;
+}
+
+function formatDateTime(value: string) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
+function StoredFilesContent() {
+  const [name, setName] = useState("");
+  const [uploadedFrom, setUploadedFrom] = useState("");
+  const [uploadedTo, setUploadedTo] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
+  const [filesPage, setFilesPage] = useState<StoredFilesPage>(emptyStoredFilesPage);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<StoredFile | null>(null);
+  const { showError, showSuccess } = useToast();
+
+  const loadFiles = async (page: number) => {
+    setIsLoading(true);
+    try {
+      const data = await getStoredFiles({
+        name,
+        uploadedFrom,
+        uploadedTo,
+        page,
+        size: FILES_PAGE_SIZE,
+      });
+      setFilesPage(data);
+    } catch (error) {
+      showError(extractApiErrorMessage(error, "Não foi possível carregar os arquivos."));
+      setFilesPage(emptyStoredFilesPage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadFiles(currentPage);
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [name, uploadedFrom, uploadedTo, currentPage]);
+
+  const handleUpload = async (file: File | undefined) => {
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      await uploadStoredFile(file);
+      setCurrentPage(0);
+      await loadFiles(0);
+      showSuccess("Arquivo enviado com sucesso.");
+    } catch (error) {
+      showError(extractApiErrorMessage(error, "Não foi possível enviar o arquivo."));
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!pendingDelete) return;
+
+    try {
+      await deleteStoredFile(pendingDelete.id);
+      setPendingDelete(null);
+      const nextPage = filesPage.content.length === 1 ? Math.max(currentPage - 1, 0) : currentPage;
+      setCurrentPage(nextPage);
+      await loadFiles(nextPage);
+      showSuccess("Arquivo removido com sucesso.");
+    } catch (error) {
+      showError(extractApiErrorMessage(error, "Não foi possível remover o arquivo."));
+    }
+  };
+
+  const clearFilters = () => {
+    setName("");
+    setUploadedFrom("");
+    setUploadedTo("");
+    setCurrentPage(0);
+  };
+
+  return (
+    <div className="space-y-6">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight text-gray-950">Arquivos</h1>
+          <p className="mt-2 text-sm text-gray-500">Anexos e documentos salvos.</p>
+        </div>
+
+        <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-purple-700">
+          <Upload className="h-4 w-4" />
+          {isUploading ? "Enviando..." : "Enviar arquivo"}
+          <input
+            type="file"
+            className="hidden"
+            disabled={isUploading}
+            onChange={(event) => {
+              void handleUpload(event.target.files?.[0]);
+              event.target.value = "";
+            }}
+          />
+        </label>
+      </header>
+
+      <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="grid gap-3 lg:grid-cols-[1fr_160px_160px_auto]">
+          <div className="flex items-center gap-3 rounded-xl border border-gray-200 px-4 py-3">
+            <Search className="h-4 w-4 text-gray-500" />
+            <input
+              value={name}
+              onChange={(event) => {
+                setName(event.target.value);
+                setCurrentPage(0);
+              }}
+              placeholder="Buscar por nome do arquivo"
+              className="w-full text-sm outline-none"
+            />
+          </div>
+
+          <label className="flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-3 text-sm text-gray-600">
+            <CalendarDays className="h-4 w-4 text-gray-400" />
+            <input
+              type="date"
+              value={uploadedFrom}
+              onChange={(event) => {
+                setUploadedFrom(event.target.value);
+                setCurrentPage(0);
+              }}
+              className="min-w-0 flex-1 outline-none"
+              aria-label="Data inicial"
+            />
+          </label>
+
+          <label className="flex items-center gap-2 rounded-xl border border-gray-200 px-3 py-3 text-sm text-gray-600">
+            <CalendarDays className="h-4 w-4 text-gray-400" />
+            <input
+              type="date"
+              value={uploadedTo}
+              onChange={(event) => {
+                setUploadedTo(event.target.value);
+                setCurrentPage(0);
+              }}
+              className="min-w-0 flex-1 outline-none"
+              aria-label="Data final"
+            />
+          </label>
+
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+          >
+            Limpar
+          </button>
+        </div>
+
+        <div className="pt-4">
+          <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
+            <span>{filesPage.totalElements} arquivo(s)</span>
+            {filesPage.totalPages > 0 ? (
+              <span>
+                Página {filesPage.page + 1} de {filesPage.totalPages}
+              </span>
+            ) : null}
+          </div>
+
+          {isLoading ? (
+            <p className="pt-4 text-sm text-gray-500">Carregando arquivos...</p>
+          ) : filesPage.content.length === 0 ? (
+            <div className="mt-4 rounded-2xl border border-gray-200 bg-white px-6 py-16 text-center shadow-sm">
+              <FileUp className="mx-auto h-10 w-10 text-gray-300" />
+              <p className="mt-4 text-sm text-gray-500">Nenhum arquivo encontrado.</p>
+            </div>
+          ) : (
+            <div className="mt-4 overflow-hidden rounded-2xl border border-gray-200">
+              <div className="hidden grid-cols-[minmax(0,1fr)_120px_170px_112px] gap-4 border-b border-gray-200 bg-gray-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 md:grid">
+                <span>Arquivo</span>
+                <span>Tamanho</span>
+                <span>Envio</span>
+                <span className="text-right">Ações</span>
+              </div>
+
+              <div className="divide-y divide-gray-100 bg-white">
+                {filesPage.content.map((file) => (
+                  <article
+                    key={file.id}
+                    className="grid gap-3 px-4 py-4 md:grid-cols-[minmax(0,1fr)_120px_170px_112px] md:items-center md:gap-4"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-gray-900">{file.originalFileName}</p>
+                      <p className="mt-1 truncate text-xs text-gray-400">
+                        {file.contentType || "application/octet-stream"} · {file.checksumSha256.slice(0, 12)}
+                      </p>
+                    </div>
+
+                    <span className="text-sm text-gray-600">{formatBytes(file.sizeBytes)}</span>
+                    <span className="text-sm text-gray-600">{formatDateTime(file.uploadedAt)}</span>
+
+                    <div className="flex justify-start gap-2 md:justify-end">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          downloadStoredFile(file).catch((error) => {
+                            showError(extractApiErrorMessage(error, "Não foi possível baixar o arquivo."));
+                          });
+                        }}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition hover:bg-gray-50"
+                        aria-label={`Baixar ${file.originalFileName}`}
+                        title="Baixar"
+                      >
+                        <Download className="h-4 w-4" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setPendingDelete(file)}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-white text-red-600 transition hover:bg-red-50"
+                        aria-label={`Remover ${file.originalFileName}`}
+                        title="Remover"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {filesPage.totalPages > 1 ? (
+            <div className="mt-5 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((page) => Math.max(page - 1, 0))}
+                disabled={filesPage.first}
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Anterior
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentPage((page) => page + 1)}
+                disabled={filesPage.last}
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Próxima
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          ) : null}
+        </div>
+      </section>
+
+      <ConfirmModal
+        isOpen={pendingDelete !== null}
+        onConfirm={() => void handleDelete()}
+        onCancel={() => setPendingDelete(null)}
+        title="Remover arquivo?"
+        message={
+          pendingDelete
+            ? `O arquivo "${pendingDelete.originalFileName}" será removido do banco e do HD.`
+            : undefined
+        }
+      />
     </div>
   );
 }
@@ -172,8 +491,9 @@ function ArchivedTaskModal({
 
 function ArchivedContent() {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<ArchivedSearchResult[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
+  const [archivedPage, setArchivedPage] = useState<ArchivedItemsPage>(emptyArchivedPage);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [isLoadingArchived, setIsLoadingArchived] = useState(false);
   const [selectedTaskResult, setSelectedTaskResult] = useState<ArchivedSearchResult | null>(null);
   const [pendingTabRestore, setPendingTabRestore] = useState<ArchivedSearchResult | null>(null);
   const [pendingSectionRestoreWithParents, setPendingSectionRestoreWithParents] = useState<ArchivedSearchResult | null>(null);
@@ -186,32 +506,33 @@ function ArchivedContent() {
   const [selectedSectionId, setSelectedSectionId] = useState("");
   const { showError, showSuccess } = useToast();
 
-  const performSearch = async (value: string) => {
-    if (value.trim().length < 2) {
-      setResults([]);
-      setIsSearching(false);
-      return;
-    }
+  const results = archivedPage.content;
+  const hasSearchQuery = query.trim().length >= 2;
 
-    setIsSearching(true);
+  const loadArchivedItems = async (value: string, page: number) => {
+    setIsLoadingArchived(true);
     try {
-      const data = await searchArchivedItems(value);
-      setResults(data);
+      const data = await getArchivedItems({
+        query: value,
+        page,
+        size: ARCHIVED_PAGE_SIZE,
+      });
+      setArchivedPage(data);
     } catch (error) {
-      showError(extractApiErrorMessage(error, "Não foi possível buscar os itens arquivados."));
-      setResults([]);
+      showError(extractApiErrorMessage(error, "Não foi possível carregar os itens arquivados."));
+      setArchivedPage(emptyArchivedPage);
     } finally {
-      setIsSearching(false);
+      setIsLoadingArchived(false);
     }
   };
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      void performSearch(query);
+      void loadArchivedItems(query, currentPage);
     }, 300);
 
     return () => window.clearTimeout(timer);
-  }, [query]);
+  }, [query, currentPage]);
 
   const isDestinationModalOpen = Boolean(sectionDestinationResult || taskDestinationResult);
 
@@ -254,7 +575,7 @@ function ArchivedContent() {
   }, [selectedTabId, taskDestinationResult, showError]);
 
   const refreshCurrentSearch = async () => {
-    await performSearch(query);
+    await loadArchivedItems(query, currentPage);
   };
 
   const resultStats = useMemo(
@@ -554,25 +875,35 @@ function ArchivedContent() {
           <Search className="h-4 w-4 text-gray-500" />
           <input
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => {
+              setQuery(event.target.value);
+              setCurrentPage(0);
+            }}
             placeholder="Buscar por tabs, sections, tasks, comentários e subtarefas arquivadas..."
             className="w-full text-sm outline-none"
           />
         </div>
 
-        {query.trim().length < 2 ? (
+        {!hasSearchQuery ? (
           <p className="pt-3 text-sm text-gray-500">
-            Digite pelo menos 2 caracteres para buscar em itens arquivados.
+            Exibindo os últimos itens arquivados. Digite pelo menos 2 caracteres para filtrar.
           </p>
-        ) : isSearching ? (
-          <p className="pt-3 text-sm text-gray-500">Buscando itens arquivados...</p>
+        ) : null}
+
+        {isLoadingArchived ? (
+          <p className="pt-3 text-sm text-gray-500">Carregando itens arquivados...</p>
         ) : (
           <div className="pt-4">
             <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
-              <span>{results.length} item(ns) arquivado(s)</span>
+              <span>{archivedPage.totalElements} item(ns) arquivado(s)</span>
               <span>{resultStats.tabs} tabs</span>
               <span>{resultStats.sections} sections</span>
               <span>{resultStats.tasks} tasks</span>
+              {archivedPage.totalPages > 0 ? (
+                <span>
+                  Página {archivedPage.page + 1} de {archivedPage.totalPages}
+                </span>
+              ) : null}
             </div>
 
             {results.length === 0 ? (
@@ -610,9 +941,11 @@ function ArchivedContent() {
                         </p>
                       </div>
 
-                      <div className="rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-700">
+                      {hasSearchQuery ? (
+                        <div className="rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-700">
                         score {result.score}
-                      </div>
+                        </div>
+                      ) : null}
                     </div>
 
                     {result.matches.length > 0 ? (
@@ -651,6 +984,29 @@ function ArchivedContent() {
                 ))}
               </div>
             )}
+
+            {archivedPage.totalPages > 1 ? (
+              <div className="mt-5 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => Math.max(page - 1, 0))}
+                  disabled={archivedPage.first}
+                  className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Anterior
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((page) => page + 1)}
+                  disabled={archivedPage.last}
+                  className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Próxima
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            ) : null}
           </div>
         )}
       </section>
@@ -834,6 +1190,10 @@ export function FilesPlaceholder() {
         <section className="min-w-0 flex-1">
           {activeSection === "archived" ? (
             <ArchivedContent />
+          ) : activeSection === "files" ? (
+            <StoredFilesContent />
+          ) : activeSection === "keyValue" ? (
+            <VaultContent onCancelUnlock={() => setActiveSection("archived")} />
           ) : (
             <DevelopmentPlaceholder
               title={activeItem.title}
