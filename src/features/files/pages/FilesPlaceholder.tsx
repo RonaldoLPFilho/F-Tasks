@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   Archive,
   ArrowRightLeft,
@@ -6,11 +8,15 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
+  Edit3,
+  Eye,
   FileArchive,
   FileText,
   FileUp,
   FolderArchive,
+  Plus,
   RotateCcw,
+  Save,
   Search,
   Trash2,
   Upload,
@@ -43,6 +49,14 @@ import {
 import { ArchivedItemsPage, ArchivedSearchResult } from "../types/ArchivedItem";
 import { StoredFile, StoredFilesPage } from "../types/StoredFile";
 import { VaultContent } from "../../vault/components/VaultContent";
+import {
+  createHowToDoDocument,
+  deleteHowToDoDocument,
+  getHowToDoDocument,
+  getHowToDoDocuments,
+  updateHowToDoDocument,
+} from "../../howtodo/services/HowToDoService";
+import { HowToDoDetail, HowToDoPage, HowToDoSummary } from "../../howtodo/types/HowToDoDocument";
 
 type FilesSection = "archived" | "files" | "keyValue" | "howTo";
 
@@ -60,6 +74,16 @@ const emptyArchivedPage: ArchivedItemsPage = {
 };
 
 const emptyStoredFilesPage: StoredFilesPage = {
+  content: [],
+  page: 0,
+  size: FILES_PAGE_SIZE,
+  totalElements: 0,
+  totalPages: 0,
+  first: true,
+  last: true,
+};
+
+const emptyHowToDoPage: HowToDoPage = {
   content: [],
   page: 0,
   size: FILES_PAGE_SIZE,
@@ -368,6 +392,434 @@ function StoredFilesContent() {
         message={
           pendingDelete
             ? `O arquivo "${pendingDelete.originalFileName}" será removido do banco e do HD.`
+            : undefined
+        }
+      />
+    </div>
+  );
+}
+
+function HowToDoModal({
+  document,
+  isCreating,
+  initialEditing,
+  onClose,
+  onSaved,
+  onDelete,
+}: {
+  document: HowToDoDetail | null;
+  isCreating: boolean;
+  initialEditing: boolean;
+  onClose: () => void;
+  onSaved: () => void;
+  onDelete: (document: HowToDoDetail) => void;
+}) {
+  const [isEditing, setIsEditing] = useState(isCreating || initialEditing);
+  const [title, setTitle] = useState(document?.title ?? "");
+  const [content, setContent] = useState(document?.content ?? "");
+  const [isSaving, setIsSaving] = useState(false);
+  const { showError, showSuccess } = useToast();
+
+  useEffect(() => {
+    setIsEditing(isCreating || initialEditing);
+    setTitle(document?.title ?? "");
+    setContent(document?.content ?? "");
+  }, [document, isCreating, initialEditing]);
+
+  const handleSave = async () => {
+    const safeTitle = title.trim();
+    if (!safeTitle) {
+      showError("Informe um título.");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      if (isCreating) {
+        await createHowToDoDocument({ title: safeTitle, content });
+        showSuccess("How To Do criado com sucesso.");
+        onSaved();
+        onClose();
+      } else if (document) {
+        const updated = await updateHowToDoDocument(document.id, { title: safeTitle, content });
+        setTitle(updated.title);
+        setContent(updated.content);
+        setIsEditing(false);
+        showSuccess("How To Do salvo com sucesso.");
+        onSaved();
+      }
+    } catch (error) {
+      showError(extractApiErrorMessage(error, "Não foi possível salvar o How To Do."));
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    if (isCreating) {
+      onClose();
+      return;
+    }
+
+    setTitle(document?.title ?? "");
+    setContent(document?.content ?? "");
+    setIsEditing(false);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
+      <div className="flex max-h-full w-full max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <header className="flex flex-wrap items-start justify-between gap-4 border-b border-gray-200 px-5 py-4">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-purple-600">
+              How To Do
+            </p>
+            <h2 className="mt-1 truncate text-xl font-semibold text-gray-950">
+              {isCreating ? "Criar novo How To Do" : document?.title}
+            </h2>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {!isCreating && !isEditing ? (
+              <button
+                type="button"
+                onClick={() => setIsEditing(true)}
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+              >
+                <Edit3 className="h-4 w-4" />
+                Editar
+              </button>
+            ) : null}
+            {!isCreating && document ? (
+              <button
+                type="button"
+                onClick={() => onDelete(document)}
+                className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4" />
+                Excluir
+              </button>
+            ) : null}
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Fechar"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-gray-500 transition hover:bg-gray-100 hover:text-gray-800"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </header>
+
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+          {isEditing ? (
+            <div className="space-y-4">
+              <label className="block">
+                <span className="text-sm font-medium text-gray-700">Título</span>
+                <input
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  maxLength={160}
+                  className="mt-2 w-full rounded-xl border border-gray-300 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Ex: Como fazer deploy"
+                />
+              </label>
+
+              <label className="block">
+                <span className="text-sm font-medium text-gray-700">Markdown</span>
+                <textarea
+                  value={content}
+                  onChange={(event) => setContent(event.target.value)}
+                  className="mt-2 h-[52vh] w-full resize-none rounded-xl border border-gray-300 px-4 py-3 font-mono text-sm leading-6 outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="# Como fazer deploy&#10;&#10;1. Acessar servidor"
+                />
+              </label>
+            </div>
+          ) : (
+            <article className="max-w-none text-gray-800">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  h1: ({ children }) => <h1 className="mb-4 text-3xl font-bold text-gray-950">{children}</h1>,
+                  h2: ({ children }) => <h2 className="mb-3 mt-6 text-2xl font-semibold text-gray-950">{children}</h2>,
+                  h3: ({ children }) => <h3 className="mb-2 mt-5 text-xl font-semibold text-gray-950">{children}</h3>,
+                  p: ({ children }) => <p className="mb-4 leading-7 text-gray-700">{children}</p>,
+                  ul: ({ children }) => <ul className="mb-4 list-disc space-y-1 pl-6 text-gray-700">{children}</ul>,
+                  ol: ({ children }) => <ol className="mb-4 list-decimal space-y-1 pl-6 text-gray-700">{children}</ol>,
+                  code: ({ children }) => <code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-sm text-purple-700">{children}</code>,
+                  pre: ({ children }) => <pre className="mb-4 overflow-x-auto rounded-xl bg-gray-950 p-4 text-sm text-white">{children}</pre>,
+                  blockquote: ({ children }) => <blockquote className="mb-4 border-l-4 border-purple-300 pl-4 text-gray-600">{children}</blockquote>,
+                  a: ({ href, children }) => <a href={href} className="text-purple-700 underline" target="_blank" rel="noreferrer">{children}</a>,
+                }}
+              >
+                {content || "_Sem conteúdo._"}
+              </ReactMarkdown>
+            </article>
+          )}
+        </div>
+
+        {isEditing ? (
+          <footer className="flex justify-end gap-3 border-t border-gray-200 px-5 py-4">
+            <button
+              type="button"
+              onClick={handleCancelEdit}
+              className="rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={() => void handleSave()}
+              disabled={isSaving}
+              className="inline-flex items-center gap-2 rounded-xl bg-purple-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Save className="h-4 w-4" />
+              {isSaving ? "Salvando..." : "Salvar"}
+            </button>
+          </footer>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function HowToDoContent() {
+  const [title, setTitle] = useState("");
+  const [currentPage, setCurrentPage] = useState(0);
+  const [documentsPage, setDocumentsPage] = useState<HowToDoPage>(emptyHowToDoPage);
+  const [selectedDocument, setSelectedDocument] = useState<HowToDoDetail | null>(null);
+  const [initialEditing, setInitialEditing] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<HowToDoSummary | HowToDoDetail | null>(null);
+  const { showError, showSuccess } = useToast();
+
+  const loadDocuments = async (page: number) => {
+    setIsLoading(true);
+    try {
+      const data = await getHowToDoDocuments({
+        title,
+        page,
+        size: FILES_PAGE_SIZE,
+      });
+      setDocumentsPage(data);
+    } catch (error) {
+      showError(extractApiErrorMessage(error, "Não foi possível carregar os How To Do."));
+      setDocumentsPage(emptyHowToDoPage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void loadDocuments(currentPage);
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [title, currentPage]);
+
+  const openDocument = async (documentId: string, edit = false) => {
+    setIsLoadingDetail(true);
+    try {
+      const detail = await getHowToDoDocument(documentId);
+      setSelectedDocument(detail);
+      setIsCreating(false);
+      setInitialEditing(edit);
+    } catch (error) {
+      showError(extractApiErrorMessage(error, "Não foi possível abrir o How To Do."));
+    } finally {
+      setIsLoadingDetail(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!pendingDelete) return;
+
+    try {
+      await deleteHowToDoDocument(pendingDelete.id);
+      setPendingDelete(null);
+      setSelectedDocument(null);
+      const nextPage = documentsPage.content.length === 1 ? Math.max(currentPage - 1, 0) : currentPage;
+      setCurrentPage(nextPage);
+      await loadDocuments(nextPage);
+      showSuccess("How To Do removido com sucesso.");
+    } catch (error) {
+      showError(extractApiErrorMessage(error, "Não foi possível remover o How To Do."));
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight text-gray-950">How To Do</h1>
+          <p className="mt-2 text-sm text-gray-500">Guias e procedimentos em Markdown.</p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedDocument(null);
+            setInitialEditing(false);
+            setIsCreating(true);
+          }}
+          className="inline-flex items-center justify-center gap-2 rounded-xl bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-purple-700"
+        >
+          <Plus className="h-4 w-4" />
+          Criar novo How To Do
+        </button>
+      </header>
+
+      <section className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="flex items-center gap-3 rounded-xl border border-gray-200 px-4 py-3">
+          <Search className="h-4 w-4 text-gray-500" />
+          <input
+            value={title}
+            onChange={(event) => {
+              setTitle(event.target.value);
+              setCurrentPage(0);
+            }}
+            placeholder="Buscar por título"
+            className="w-full text-sm outline-none"
+          />
+        </div>
+
+        <div className="pt-4">
+          <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
+            <span>{documentsPage.totalElements} documento(s)</span>
+            {documentsPage.totalPages > 0 ? (
+              <span>
+                Página {documentsPage.page + 1} de {documentsPage.totalPages}
+              </span>
+            ) : null}
+            {isLoadingDetail ? <span>Carregando detalhe...</span> : null}
+          </div>
+
+          {isLoading ? (
+            <p className="pt-4 text-sm text-gray-500">Carregando How To Do...</p>
+          ) : documentsPage.content.length === 0 ? (
+            <div className="mt-4 rounded-2xl border border-gray-200 bg-white px-6 py-16 text-center shadow-sm">
+              <FileText className="mx-auto h-10 w-10 text-gray-300" />
+              <p className="mt-4 text-sm text-gray-500">Nenhum How To Do encontrado.</p>
+            </div>
+          ) : (
+            <div className="mt-4 overflow-hidden rounded-2xl border border-gray-200">
+              <div className="hidden grid-cols-[minmax(0,1fr)_170px_170px_120px] gap-4 border-b border-gray-200 bg-gray-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-500 md:grid">
+                <span>Título</span>
+                <span>Criado em</span>
+                <span>Atualizado em</span>
+                <span className="text-right">Ações</span>
+              </div>
+
+              <div className="divide-y divide-gray-100 bg-white">
+                {documentsPage.content.map((document) => (
+                  <article
+                    key={document.id}
+                    onClick={() => void openDocument(document.id)}
+                    className="grid cursor-pointer gap-3 px-4 py-4 transition hover:bg-gray-50 md:grid-cols-[minmax(0,1fr)_170px_170px_120px] md:items-center md:gap-4"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-gray-900">{document.title}</p>
+                      <p className="mt-1 truncate text-xs text-gray-400">{document.id}</p>
+                    </div>
+
+                    <span className="text-sm text-gray-600">{formatDateTime(document.createdAt)}</span>
+                    <span className="text-sm text-gray-600">{formatDateTime(document.updatedAt)}</span>
+
+                    <div className="flex justify-start gap-2 md:justify-end">
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          void openDocument(document.id);
+                        }}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition hover:bg-gray-50"
+                        aria-label={`Visualizar ${document.title}`}
+                        title="Visualizar"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          void openDocument(document.id, true);
+                        }}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 transition hover:bg-gray-50"
+                        aria-label={`Editar ${document.title}`}
+                        title="Editar"
+                      >
+                        <Edit3 className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setPendingDelete(document);
+                        }}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-red-200 bg-white text-red-600 transition hover:bg-red-50"
+                        aria-label={`Excluir ${document.title}`}
+                        title="Excluir"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {documentsPage.totalPages > 1 ? (
+            <div className="mt-5 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((page) => Math.max(page - 1, 0))}
+                disabled={documentsPage.first}
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Anterior
+              </button>
+              <button
+                type="button"
+                onClick={() => setCurrentPage((page) => page + 1)}
+                disabled={documentsPage.last}
+                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Próxima
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          ) : null}
+        </div>
+      </section>
+
+      {(selectedDocument || isCreating) ? (
+        <HowToDoModal
+          document={selectedDocument}
+          isCreating={isCreating}
+          initialEditing={initialEditing}
+          onClose={() => {
+            setSelectedDocument(null);
+            setInitialEditing(false);
+            setIsCreating(false);
+          }}
+          onSaved={() => void loadDocuments(currentPage)}
+          onDelete={(document) => setPendingDelete(document)}
+        />
+      ) : null}
+
+      <ConfirmModal
+        isOpen={pendingDelete !== null}
+        onConfirm={() => void handleDelete()}
+        onCancel={() => setPendingDelete(null)}
+        title="Excluir How To Do?"
+        message={
+          pendingDelete
+            ? `O documento "${pendingDelete.title}" será removido do sistema e do HD.`
             : undefined
         }
       />
@@ -1194,6 +1646,8 @@ export function FilesPlaceholder() {
             <StoredFilesContent />
           ) : activeSection === "keyValue" ? (
             <VaultContent onCancelUnlock={() => setActiveSection("archived")} />
+          ) : activeSection === "howTo" ? (
+            <HowToDoContent />
           ) : (
             <DevelopmentPlaceholder
               title={activeItem.title}
