@@ -12,11 +12,12 @@ import {
 import { Divider } from "../../../components/Divider";
 import { useToast } from "../../../components/toast/ToastProvider";
 import { extractApiErrorMessage } from "../../../utils/extractApiErrorMessage";
-import { TaskSubtasks } from "../subtasks/components/TaskSubtasks";
-import { TaskComments } from "../comments/components/TaskComment";
 import { Task } from "../types/Task";
 import { updateTask } from "../services/TaskService";
 import { splitHighlightedText } from "../utils/highlightSearchText";
+import { ElementType } from "../elements/types/TaskElement";
+import { elementRenderers } from "../elements/registry/ElementRegistry";
+import { AddElementMenu } from "../elements/components/AddElementMenu";
 
 interface TaskCardProps {
   task: Task;
@@ -41,12 +42,19 @@ export function TaskCard({
   const [editTitle, setEditTitle] = useState(task.title);
   const [editDescription, setEditDescription] = useState(task.description ?? "");
   const [isSaving, setIsSaving] = useState(false);
+  const [openSections, setOpenSections] = useState<Set<ElementType>>(
+    () => new Set(task.elements.map(e => e.elementType))
+  );
   const { showSuccess, showError } = useToast();
 
   useEffect(() => {
     setEditTitle(task.title);
     setEditDescription(task.description ?? "");
   }, [task.id, task.title, task.description]);
+
+  useEffect(() => {
+    setOpenSections(new Set(task.elements.map(e => e.elementType)));
+  }, [task.id]);
 
   const handleStartEdit = () => {
     setEditTitle(task.title);
@@ -84,6 +92,10 @@ export function TaskCard({
     setEditDescription(task.description ?? "");
     setIsEditing(false);
   };
+
+  const subtaskCount = task.elements.filter(e => e.elementType === 'SUBTASK').length;
+  const commentCount = task.elements.filter(e => e.elementType === 'COMMENT').length;
+  const visibleTypes = Array.from(openSections);
 
   const borderColor = isEditing
     ? "rgb(34 197 94)"
@@ -168,13 +180,17 @@ export function TaskCard({
                     {new Date(task.createdAt).toLocaleDateString("pt-BR")}
                   </div>
 
-                  <div className="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-md font-medium">
-                    {task.subtasks?.length || 0} subtarefas
-                  </div>
+                  {subtaskCount > 0 && (
+                    <div className="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-md font-medium">
+                      {subtaskCount} checklist
+                    </div>
+                  )}
 
-                  <div className="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-md font-medium">
-                    {task.comments?.length || 0} comentário(s)
-                  </div>
+                  {commentCount > 0 && (
+                    <div className="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-md font-medium">
+                      {commentCount} observação(ões)
+                    </div>
+                  )}
                 </div>
 
                 <p className="text-sm text-gray-600 mt-6 mb-6">
@@ -228,25 +244,32 @@ export function TaskCard({
 
       {!isEditing && (
         <>
-          <TaskSubtasks
-            taskId={task.id}
-            subtasks={task.subtasks}
-            readOnly={readOnly}
-            highlightTerms={highlightTerms}
-            onSubtasksUpdated={(newSubs) => {
-              onUpdateTask({ ...task, subtasks: newSubs });
-            }}
-          />
-          <Divider />
-          <TaskComments
-            taskId={task.id}
-            comments={task.comments}
-            readOnly={readOnly}
-            highlightTerms={highlightTerms}
-            onCommentsUpdated={(newComments) => {
-              onUpdateTask({ ...task, comments: newComments });
-            }}
-          />
+          {visibleTypes.map((type, index) => {
+            const Renderer = elementRenderers[type];
+            return (
+              <div key={type}>
+                {index > 0 && <Divider />}
+                <Renderer
+                  taskId={task.id}
+                  currentElements={task.elements}
+                  onUpdate={(newElements) => onUpdateTask({ ...task, elements: newElements })}
+                  onRemoveSection={() => setOpenSections(prev => { const next = new Set(prev); next.delete(type); return next; })}
+                  readOnly={readOnly}
+                  highlightTerms={highlightTerms}
+                />
+              </div>
+            );
+          })}
+
+          {!readOnly && (
+            <>
+              {visibleTypes.length > 0 && <Divider />}
+              <AddElementMenu
+                visibleTypes={visibleTypes}
+                onAdd={(type) => setOpenSections(prev => new Set([...prev, type]))}
+              />
+            </>
+          )}
         </>
       )}
     </div>

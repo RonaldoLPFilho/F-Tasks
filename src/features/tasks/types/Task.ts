@@ -1,6 +1,5 @@
 import { Category } from "../../../types/Category";
-import { Comment } from "../comments/types/Comment";
-import { Subtask } from "../subtasks/types/Substask";
+import { TaskElement } from "../elements/types/TaskElement";
 
 export interface Task {
     id: string;
@@ -15,6 +14,5 @@ export interface Task {
     active?: boolean;
     archived?: boolean;
     category?: Category | null;
-    subtasks: Subtask[];
-    comments: Comment[];
+    elements: TaskElement[];
 }
