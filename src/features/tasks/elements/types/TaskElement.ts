@@ -22,6 +22,7 @@ export interface CommentElement extends TaskElement {
 export interface DueDateElement extends TaskElement {
     elementType: 'DUE_DATE';
     dueDate: string;
+    dueTime?: string | null;
 }
 
 export interface ElementRendererProps {

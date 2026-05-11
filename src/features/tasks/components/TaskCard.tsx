@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import {
   Archive,
   CalendarDays,
@@ -15,7 +16,7 @@ import { extractApiErrorMessage } from "../../../utils/extractApiErrorMessage";
 import { Task } from "../types/Task";
 import { updateTask } from "../services/TaskService";
 import { splitHighlightedText } from "../utils/highlightSearchText";
-import { ElementType } from "../elements/types/TaskElement";
+import { DueDateElement, ElementType } from "../elements/types/TaskElement";
 import { elementRenderers } from "../elements/registry/ElementRegistry";
 import { AddElementMenu } from "../elements/components/AddElementMenu";
 
@@ -97,14 +98,37 @@ export function TaskCard({
   const commentCount = task.elements.filter(e => e.elementType === 'COMMENT').length;
   const visibleTypes = Array.from(openSections);
 
+  const [isNearDue, setIsNearDue] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      const due = task.elements.find((e): e is DueDateElement => e.elementType === 'DUE_DATE');
+      if (!due?.dueTime) { setIsNearDue(false); return; }
+      const [year, month, day] = due.dueDate.split('-').map(Number);
+      const [hour, minute] = due.dueTime.split(':').map(Number);
+      const diffMs = new Date(year, month - 1, day, hour, minute).getTime() - Date.now();
+      setIsNearDue(diffMs >= 0 && diffMs <= 10 * 60 * 1000);
+    };
+    check();
+    const id = setInterval(check, 30_000);
+    return () => clearInterval(id);
+  }, [task.elements]);
+
   const borderColor = isEditing
     ? "rgb(34 197 94)"
     : task.category?.color ?? "#9333ea";
 
   return (
-    <div
+    <motion.div
       className="w-full border-l-4 rounded-xl shadow-sm p-6 bg-white"
-      style={{ borderLeftColor: borderColor }}
+      animate={isNearDue
+        ? { borderLeftColor: ["rgba(239,68,68,0.25)", "rgba(239,68,68,0.85)", "rgba(239,68,68,0.25)"] }
+        : { borderLeftColor: borderColor }
+      }
+      transition={isNearDue
+        ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" }
+        : { duration: 0.4 }
+      }
     >
       <div className="flex justify-between items-start">
         <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -272,6 +296,6 @@ export function TaskCard({
           )}
         </>
       )}
-    </div>
+    </motion.div>
   );
 }

@@ -20,11 +20,11 @@ export const toggleSubtaskCompletion = async (elementId: string, completed: bool
     await api.patch(`/elements/${elementId}/toggle/${completed}`);
 };
 
-export const createDueDateElement = async (taskId: string, dueDate: string): Promise<DueDateElement> => {
-    const response = await api.post<ApiResponse<DueDateElement>>(`/tasks/${taskId}/elements/due-date`, { dueDate, taskId });
+export const createDueDateElement = async (taskId: string, dueDate: string, dueTime?: string): Promise<DueDateElement> => {
+    const response = await api.post<ApiResponse<DueDateElement>>(`/tasks/${taskId}/elements/due-date`, { dueDate, dueTime: dueTime || null, taskId });
     return response.data.data;
 };
 
-export const updateDueDateElement = async (elementId: string, dueDate: string): Promise<void> => {
-    await api.patch(`/elements/${elementId}/due-date`, { dueDate });
+export const updateDueDateElement = async (elementId: string, dueDate: string, dueTime?: string): Promise<void> => {
+    await api.patch(`/elements/${elementId}/due-date`, { dueDate, dueTime: dueTime || null });
 };

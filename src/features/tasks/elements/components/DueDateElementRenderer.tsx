@@ -1,36 +1,38 @@
 import { useState } from "react";
-import { CalendarDays, Check, Pencil, Trash, X } from "lucide-react";
-import { DueDateElement } from "../types/TaskElement";
-import { ElementRendererProps } from "../types/TaskElement";
+import { CalendarDays, Check, Clock, Pencil, Trash, X } from "lucide-react";
+import { DueDateElement, ElementRendererProps } from "../types/TaskElement";
 import { createDueDateElement, deleteElement, updateDueDateElement } from "../services/TaskElementService";
 import { useToast } from "../../../../components/toast/ToastProvider";
 import { extractApiErrorMessage } from "../../../../utils/extractApiErrorMessage";
 
-function formatDate(dateStr: string) {
-    const [year, month, day] = dateStr.split("-").map(Number);
-    return new Date(year, month - 1, day).toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
+function formatDateTime(dueDate: string, dueTime?: string | null) {
+    const [year, month, day] = dueDate.split("-").map(Number);
+    const datePart = new Date(year, month - 1, day).toLocaleDateString("pt-BR", {
+        day: "2-digit", month: "2-digit", year: "numeric",
     });
+    if (!dueTime) return datePart;
+    const [h, m] = dueTime.split(":");
+    return `${datePart} às ${h}:${m}`;
 }
 
-function isOverdue(dateStr: string) {
-    const [year, month, day] = dateStr.split("-").map(Number);
+function isOverdue(dueDate: string, dueTime?: string | null) {
+    const [year, month, day] = dueDate.split("-").map(Number);
+    if (dueTime) {
+        const [h, m] = dueTime.split(":").map(Number);
+        return new Date(year, month - 1, day, h, m) < new Date();
+    }
     const due = new Date(year, month - 1, day);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
     return due < today;
 }
 
-function isDueSoon(dateStr: string) {
-    const [year, month, day] = dateStr.split("-").map(Number);
-    const due = new Date(year, month - 1, day);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const diffMs = due.getTime() - today.getTime();
-    const diffDays = diffMs / (1000 * 60 * 60 * 24);
-    return diffDays >= 0 && diffDays <= 3;
+function isDueSoon(dueDate: string, dueTime?: string | null) {
+    const [year, month, day] = dueDate.split("-").map(Number);
+    const due = dueTime
+        ? (() => { const [h, m] = dueTime.split(":").map(Number); return new Date(year, month - 1, day, h, m); })()
+        : new Date(year, month - 1, day);
+    const diffMs = due.getTime() - Date.now();
+    return diffMs >= 0 && diffMs <= 3 * 24 * 60 * 60 * 1000;
 }
 
 export function DueDateElementRenderer({
@@ -43,6 +45,7 @@ export function DueDateElementRenderer({
     const dueDate = currentElements.find((e): e is DueDateElement => e.elementType === "DUE_DATE");
     const [isEditing, setIsEditing] = useState(!dueDate);
     const [dateValue, setDateValue] = useState(dueDate?.dueDate ?? "");
+    const [timeValue, setTimeValue] = useState(dueDate?.dueTime ? dueDate.dueTime.slice(0, 5) : "");
     const [isSaving, setIsSaving] = useState(false);
     const { showError } = useToast();
 
@@ -50,13 +53,14 @@ export function DueDateElementRenderer({
         if (!dateValue) return;
         setIsSaving(true);
         try {
+            const time = timeValue || undefined;
             if (dueDate) {
-                await updateDueDateElement(dueDate.id, dateValue);
+                await updateDueDateElement(dueDate.id, dateValue, time);
                 onUpdate(currentElements.map(e =>
-                    e.id === dueDate.id ? { ...e, dueDate: dateValue } : e
+                    e.id === dueDate.id ? { ...e, dueDate: dateValue, dueTime: time ?? null } : e
                 ));
             } else {
-                const created = await createDueDateElement(taskId, dateValue);
+                const created = await createDueDateElement(taskId, dateValue, time);
                 onUpdate([...currentElements, created]);
             }
             setIsEditing(false);
@@ -68,10 +72,7 @@ export function DueDateElementRenderer({
     };
 
     const handleDelete = async () => {
-        if (!dueDate) {
-            onRemoveSection?.();
-            return;
-        }
+        if (!dueDate) { onRemoveSection?.(); return; }
         try {
             await deleteElement(dueDate.id);
             onUpdate(currentElements.filter(e => e.id !== dueDate.id));
@@ -86,21 +87,21 @@ export function DueDateElementRenderer({
             onRemoveSection?.();
         } else {
             setDateValue(dueDate.dueDate);
+            setTimeValue(dueDate.dueTime ? dueDate.dueTime.slice(0, 5) : "");
             setIsEditing(false);
         }
     };
 
-    const overdue = dueDate && isOverdue(dueDate.dueDate);
-    const soon = dueDate && !overdue && isDueSoon(dueDate.dueDate);
+    const overdue = dueDate && isOverdue(dueDate.dueDate, dueDate.dueTime);
+    const soon = dueDate && !overdue && isDueSoon(dueDate.dueDate, dueDate.dueTime);
 
     return (
-        <div className="m-4 flex items-center gap-3">
+        <div className="m-4 flex items-center gap-3 flex-wrap">
             <CalendarDays className={`w-5 h-5 shrink-0 ${overdue ? "text-red-500" : soon ? "text-amber-500" : "text-gray-500"}`} />
-
             <span className="text-gray-600 font-medium text-sm shrink-0">Data entrega</span>
 
             {isEditing ? (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                     <input
                         type="date"
                         value={dateValue}
@@ -108,11 +109,21 @@ export function DueDateElementRenderer({
                         className="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                         autoFocus
                     />
+                    <div className="flex items-center gap-1 text-gray-400 text-xs">
+                        <Clock className="w-3.5 h-3.5" />
+                        <input
+                            type="time"
+                            value={timeValue}
+                            onChange={e => setTimeValue(e.target.value)}
+                            className="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        />
+                        <span className="text-gray-400 text-xs ml-1">opcional</span>
+                    </div>
                     <button
                         onClick={handleSave}
                         disabled={!dateValue || isSaving}
                         className="p-1.5 rounded text-green-600 hover:bg-green-50 disabled:opacity-40"
-                        aria-label="Confirmar data"
+                        aria-label="Confirmar"
                     >
                         <Check className="w-4 h-4" />
                     </button>
@@ -128,18 +139,14 @@ export function DueDateElementRenderer({
             ) : (
                 <div className="flex items-center gap-2">
                     <span className={`text-sm font-semibold ${overdue ? "text-red-600" : soon ? "text-amber-600" : "text-gray-800"}`}>
-                        {dueDate && formatDate(dueDate.dueDate)}
+                        {dueDate && formatDateTime(dueDate.dueDate, dueDate.dueTime)}
                     </span>
 
                     {overdue && (
-                        <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
-                            Atrasado
-                        </span>
+                        <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">Atrasado</span>
                     )}
                     {soon && (
-                        <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
-                            Em breve
-                        </span>
+                        <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">Em breve</span>
                     )}
 
                     {!readOnly && (
@@ -147,7 +154,7 @@ export function DueDateElementRenderer({
                             <button
                                 onClick={() => setIsEditing(true)}
                                 className="p-1.5 rounded text-gray-400 hover:text-purple-600 hover:bg-purple-50"
-                                aria-label="Editar data"
+                                aria-label="Editar"
                             >
                                 <Pencil className="w-3.5 h-3.5" />
                             </button>
